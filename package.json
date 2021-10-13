@@ -2,7 +2,11 @@
   "name": "lfs",
   "version": "1.0.0",
   "description": "A utility App for sharing files in a LAN network",
-  "main": "index.js",
+  "main": "bin/lfs.js",
+  "bin": {
+    "chasscepts/lfs": "bin/lfs.js",
+    "lfs": "bin/lfs.js"
+  },
   "dependencies": {
     "@babel/core": "^7.15.5",
     "@babel/preset-env": "^7.15.6",
@@ -34,6 +38,7 @@
     "css-loader": "^6.4.0"
   },
   "scripts": {
+    "start": "cross-env NODE_ENV=development node .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
