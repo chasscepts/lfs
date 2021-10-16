@@ -22,6 +22,14 @@ module.exports = {
         include: path.join(__dirname, 'src'),
         use: 'babel-loader',
       },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"],
+      },
+      {
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        type: 'asset/resource',
+      },
     ],
   },
   plugins: [
