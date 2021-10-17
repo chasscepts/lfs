@@ -1,3 +1,22 @@
+const normalizeError = (err) => {
+  if (!err) {
+    return { message: 'An unknown error encountered. Please try again.' };
+  }
+  if (err.response) {
+    return { message: err.response.data.message || JSON.stringify(err.response.data) };
+  }
+  if (err.request) {
+    return { message: 'Server is not responding. One possibility is that CORS is disabled on server. Check your console to see' };
+  }
+  if (err.message) {
+    return { message: err.message };
+  }
+  if (typeof err === 'string') {
+    return { message: err };
+  }
+  return { message: 'An unknown error encountered. Please try again.' };
+};
+
 /**
  * 
  * @param {string} url 
@@ -30,6 +49,8 @@
           }
         }),
       })
+    } else {
+      reject({ message: `Server responded with status code ${xhr.status}.\n Reason: ${xhr.statusText}` });
     }
   };
   xhr.send();
@@ -42,7 +63,7 @@
 const upload = (url, formData) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
   xhr.open('POST', url);
-  xhr.onerror = (evt) => reject(evt);
+  xhr.onerror = () => reject({ message: 'Network error. Your request could not be completed' });
   xhr.onload = () => {
     if (xhr.status === 200) {
       resolve({
@@ -63,14 +84,14 @@ const upload = (url, formData) => new Promise((resolve, reject) => {
           }
         }),
       })
+    } else {
+      reject(new Error(`Server responded with status code ${xhr.status}.\n Reason: ${xhr.statusText}`));
     }
   };
   xhr.send(formData);
 });
 
-let root;
-
-const downloadFile = (path, name) => {
+const downloadFile = (path) => new Promise((resolve, reject) => {
   fetcher(`/download?path=${path}`, { responseType: 'blob' })
   .then((res) => res.body())
   .then((data) => {
@@ -85,9 +106,10 @@ const downloadFile = (path, name) => {
       link.click();
       link.remove();
     }
+    resolve();
   })
-  .catch((err) => console.log(err));
-};
+  .catch((err) => reject(normalizeError(err)));
+});
 
 const listDir = (path) => new Promise((resolve, reject) => {
   let url = '/list-dir';
@@ -97,9 +119,6 @@ const listDir = (path) => new Promise((resolve, reject) => {
   fetcher(url)
     .then((res) => res.json())
     .then((json) => {
-      if (!path) {
-        root = json;
-      }
       resolve(json);
     })
     .catch((err) => reject(err));
@@ -109,5 +128,4 @@ export default {
   upload,
   downloadFile,
   listDir,
-  root: () => root,
 };
