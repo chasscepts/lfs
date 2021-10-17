@@ -100,13 +100,14 @@ const downloadFile = (path) => new Promise((resolve, reject) => {
     if (typeof window.navigator.msSaveBlob === 'function') {
       window.navigator.msSaveBlob(data, name);
     } else {
-      var blob = data;
       var link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(data);
+      link.href = url;
       link.download = name;
       document.body.append(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     }
     resolve();
   })
@@ -121,7 +122,12 @@ const getFileContent = (path, type) => new Promise((resolve, reject) => {
       if (type === 'text') {
         return res.text();
       }
-      return res.body();
+      return new Promise((resolve, reject) => {
+        res.body().then((data) => {
+          const blob = type === 'blob' ? data : new Blob([data]);
+          resolve(window.URL.createObjectURL(blob));
+        }).catch((err) => reject(err));
+      });
     })
     .then((data) => resolve(data))
     .catch((err) => reject(normalizeError(err)));
