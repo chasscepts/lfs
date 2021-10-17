@@ -1,0 +1,34 @@
+.fileWrap {
+  padding: 5px;
+}
+
+.file {
+  display: flex;
+  flex-flow: column nowrap;
+  width: 100px;
+  padding: 5px;
+  color: inherit;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: default;
+  align-items: center;
+  text-decoration: none;
+}
+
+.file:hover {
+  border: 1px solid #62b5e5;
+  background: linear-gradient(#bfdae9, #e8f3fb);
+}
+
+.icon {
+  width: 45px;
+  height: 50px;
+}
+
+.name {
+    width: 80px;
+  text-align: center;
+  overflow-wrap: anywhere;
+  padding: 10px 0 3px;
+  font-size: 0.9rem;
+}
