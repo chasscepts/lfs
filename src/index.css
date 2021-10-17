@@ -20,3 +20,14 @@ h5,
 h6 {
   margin: 0 0 5px 0;
 }
+
+.clip {
+  position: absolute;
+  -webkit-clip-path: circle(1px);
+          clip-path: circle(1px);
+  color: transparent;
+  background-color: transparent;
+  overflow: hidden;
+  bottom: 0;
+  right: 0;
+}

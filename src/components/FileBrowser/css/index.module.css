@@ -6,14 +6,24 @@
   overflow: hidden;
 }
 
+.filesPanel {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.listWrap {
+  height: 100%;
+  overflow: auto;
+}
+
 .ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-flow: row wrap;
-  align-items: top;
-  overflow: auto;
+  align-items: flex-start;
 }
 
 .errorWrap {

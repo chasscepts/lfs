@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import ContextMenu from '../ContextMenu';
 import style from './css/file.module.css';
 import icon from '../../fileIcons';
-import { loadDirAsync } from '../../reducers/dirSlice';
-import { useDispatch } from 'react-redux';
-import { downloadFileAsync } from '../../reducers/filesSlice';
+import { loadDirAsync, selectActivePath, setActivePath } from '../../reducers/dirSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { downloadFileAsync, setActiveFile } from '../../reducers/filesSlice';
 
 const name = (file) => file.length > 30 ? `${file.substr(0, 30)} ...` : file;
 
@@ -20,12 +20,20 @@ const size = (bytes) => {
 
 const File = ({ file }) => {
   const [menu, setMenu] = useState({ isOpen: false, x: 0, y: 0 });
+  const activePath = useSelector(selectActivePath);
   const dispatch = useDispatch();
   const wrap = useRef();
-  const fileClick = (e) => e.preventDefault();
+  const isActive = activePath && activePath.path === file.path;
+
+  const fileClick = (e) => {
+    e.preventDefault();
+    if (!isActive) {
+      dispatch(setActivePath(file));
+    }
+  };
 
   const openFile = () => {
-    console.log('Open File!');
+    dispatch(setActiveFile(file));
   };
 
   const fileDBClick = (e) => {
@@ -44,6 +52,10 @@ const File = ({ file }) => {
 
   const showMenu = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    if (!isActive) {
+      dispatch(setActivePath(file));
+    }
     document.addEventListener('mousedown', closeMenu);
     setMenu({ isOpen: true, x: e.pageX, y: e.pageY });
   };
@@ -71,9 +83,11 @@ const File = ({ file }) => {
     }
   }
 
+  const fileClass = isActive ? `${style.file} ${style.active}` : style.file;
+
   return (
     <div className={style.fileWrap} ref={wrap} onContextMenu={showMenu}>
-      <a href={file.path} className={style.file} onClick={fileClick} onDoubleClick={fileDBClick} title={title}>
+      <a href={file.path} className={fileClass} onClick={fileClick} onDoubleClick={fileDBClick} title={title}>
         <img className={style.icon} src={icon(file.name, file.isDirectory)} />
         <div className={style.name}>{name(file.name)}</div>
       </a>

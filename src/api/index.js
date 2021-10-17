@@ -24,9 +24,11 @@ const normalizeError = (err) => {
  */
  const fetcher = (url, options = { responseType: '' }) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
+
   if (options && options.responseType) {
     xhr.responseType = options.responseType;
   }
+  
   xhr.open('GET', url);
   xhr.onerror = (evt) => reject(evt);
   xhr.onload = () => {
@@ -111,6 +113,20 @@ const downloadFile = (path) => new Promise((resolve, reject) => {
   .catch((err) => reject(normalizeError(err)));
 });
 
+const getFileContent = (path, type) => new Promise((resolve, reject) => {
+  const options = {};
+  if (type) options.responseType = type;
+  fetcher(`/download?path=${path}`, options)
+    .then((res) => {
+      if (type === 'text') {
+        return res.text();
+      }
+      return res.body();
+    })
+    .then((data) => resolve(data))
+    .catch((err) => reject(normalizeError(err)));
+});
+
 const listDir = (path) => new Promise((resolve, reject) => {
   let url = '/list-dir';
   if (path) {
@@ -128,4 +144,5 @@ export default {
   upload,
   downloadFile,
   listDir,
+  getFileContent,
 };

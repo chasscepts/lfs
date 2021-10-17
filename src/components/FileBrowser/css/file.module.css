@@ -15,7 +15,8 @@
   text-decoration: none;
 }
 
-.file:hover {
+.file:hover,
+.file.active {
   border: 1px solid #62b5e5;
   background: linear-gradient(#bfdae9, #e8f3fb);
 }

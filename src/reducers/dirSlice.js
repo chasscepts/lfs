@@ -10,6 +10,7 @@ const slice = createSlice({
     loading: false,
     error: null,
     rootDir: null,
+    activePath: null,
   },
   reducers: {
     setCurrentDir: (state, { payload: { directory, fromState } }) => {
@@ -39,6 +40,9 @@ const slice = createSlice({
       }
       state.loading = false;
     },
+    setActivePath: (state, { payload }) => {
+      state.activePath = payload;
+    },
   },
 });
 
@@ -47,6 +51,7 @@ export const {
   setLoading,
   setError,
   addFile,
+  setActivePath,
 } = slice.actions;
 
 export const selectCurrentDir = (state) => state.dir.currentDir;
@@ -56,6 +61,8 @@ export const selectDirectoryLoading = (state) => state.dir.loading;
 export const selectDirectoryError = (state) => state.dir.error;
 
 export const selectRootDirectory = (state) => state.dir.rootDir;
+
+export const selectActivePath = (state) => state.dir.activePath;
 
 export const loadDirAsync = (path) => (dispatch, getState) => {
   if (getState().dir.loading) return;
@@ -79,6 +86,7 @@ export const loadDirAsync = (path) => (dispatch, getState) => {
 export const uploadFileAsync = (data) => (dispatch) => {
   dispatch(setLoading(true));
   api.upload('/upload', data)
+    .then((res) => res.json())
     .then((file) => dispatch(addFile(file)))
     .catch((err) => {
       dispatch(setLoading(false));

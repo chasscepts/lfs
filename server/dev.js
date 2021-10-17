@@ -61,17 +61,19 @@ app.post('/upload', upload.single('file'), (req, res) => {
   const { originalname, buffer } = req.file;
   const ext = path.extname(originalname);
   const name = path.basename(originalname, ext);
+  let newName = originalname;
   const { path: dir } = req.body;
-  const counter = 0;
-  let file = path.join(dir, originalname);
+  let counter = 0;
+  let file = path.join(dir, newName);
   while(fs.existsSync(file)) {
     counter += 1;
-    file = path.join(dir, `${name}-${counter}${ext}`);
+    newName = `${name}-${counter}${ext}`;
+    file = path.join(dir, newName);
   }
   fs.writeFileSync(file, buffer);
   const stat = fs.statSync(file);
   res.json({
-    name: child,
+    name: newName,
     parent: dir,
     path: file,
     size: stat.size,
