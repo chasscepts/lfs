@@ -45,7 +45,6 @@ const slice = createSlice({
       }
     },
     setActiveFileContent: (state, { payload }) => {
-      console.log(payload);
       state.activeFileContent = payload;
       state.activeContentError = null;
       state.viewerLoading = false;

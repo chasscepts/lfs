@@ -14,16 +14,21 @@ import css from './index.module.css';
 import LoadingBar from '../LoadingBar';
 import TextViewer from './TextViewer';
 import ImageViewer from './ImageViewer';
+import VideoPlayer from '../VideoPlayer';
 
 const td = window.TextDecoder ? new TextDecoder() : new FastTextDecoder();
 const decode = td.decode;
 
 const textRegex = /\.txt$|\.s?css$|\.xml$|\.js$|\.csv$|\.cs$|\.php$/i;
 const imageRegex = /\.png$|\.jpe?g$|\.gif/i
+const videoRegex = /\.mp4$|\.flv$|\.webv$|\.wmv$|\.mkv$|\.mov$|\.avi/i
+const audioRegex = /\.wav$|\.aac$|\.weba$|\.wma$|\.flac$|\.aiff?$/i;
 
 const findViwer = ({ path, name }) => {
   if (path.match(textRegex)) return { name, type: 'text', Viewer: TextViewer };
   if (path.match(imageRegex)) return { name, type: 'blob', Viewer: ImageViewer };
+  if (path.match(videoRegex)) return { name, type: 'blob', Viewer: VideoPlayer };
+  if (path.match(audioRegex)) return { name, type: 'blob', Viewer: VideoPlayer };
   return { type: 'arraybuffer' };
 };
 
