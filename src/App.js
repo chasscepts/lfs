@@ -4,7 +4,7 @@ import store from './app/store';
 
 import './index.css';
 import FileBrowser from './components/FileBrowser';
-import FileViewer from './components/FileViewer.js';
+import FileViewer from './components/FileViewer';
 
 const App = () => {
   return (

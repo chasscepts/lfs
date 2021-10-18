@@ -42,6 +42,7 @@ const slice = createSlice({
       state.activeFile = payload;
       if (!payload) {
         state.activeFileContent = null;
+        state.activeContentError = null;
       }
     },
     setActiveFileContent: (state, { payload }) => {

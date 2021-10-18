@@ -26,5 +26,6 @@
 
 .btn:hover {
   border: 1px solid #ddd;
+  border-radius: 5px;
   background: linear-gradient(#1c92d2, #f2fcfe);
 }

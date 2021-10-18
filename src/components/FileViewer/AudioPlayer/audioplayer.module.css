@@ -1,0 +1,16 @@
+.ring {
+  width: 200px;
+  height: 200px;
+  background-image: url(./images//ring.png);
+  background-size: 100%;
+  animation: spin 2s infinite linear;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
