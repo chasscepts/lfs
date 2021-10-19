@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import api from '../api';
 import { push } from './notificationSlice';
+import storage from '../clientPersistence/storage';
 
 const slice = createSlice({
   name: 'dir',
@@ -66,20 +67,23 @@ export const selectActivePath = (state) => state.dir.activePath;
 
 export const loadDirAsync = (path) => (dispatch, getState) => {
   if (getState().dir.loading) return;
+  let dir = path;
   if (path) {
     const directory = getState().dir.directories.find((dir) => dir.path === path);
     if (directory) {
       dispatch(setCurrentDir({ directory, fromState: true }));
       return;
     }
+  } else {
+    dir = storage.getLastDir();
   }
   dispatch(setLoading(true));
-  api.listDir(path)
+  api.listDir(dir)
     .then((directory) => {
       dispatch(setCurrentDir({ directory, fromState: false }));
     })
     .catch((err) => {
-      dispatch(setError({ path: path || '', originalError: err }));
+      dispatch(setError({ path: dir || '', originalError: err }));
     })
 };
 

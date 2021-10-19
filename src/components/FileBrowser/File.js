@@ -6,6 +6,7 @@ import icon from '../../fileIcons';
 import { loadDirAsync, selectActivePath, setActivePath } from '../../reducers/dirSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { downloadFileAsync, setActiveFile } from '../../reducers/filesSlice';
+import storage from '../../clientPersistence/storage';
 
 const name = (file) => file.length > 30 ? `${file.substr(0, 30)} ...` : file;
 
@@ -40,6 +41,7 @@ const File = ({ file }) => {
     e.preventDefault();
     if (file.isDirectory) {
       dispatch(loadDirAsync(file.path));
+      storage.saveLastDir(file.path);
     } else {
       openFile();
     }

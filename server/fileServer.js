@@ -98,7 +98,7 @@ const list = (dir) => {
     return 0;
   });
 
-  return Promise.resolve({ path: file, sep: path.sep, shortPath, children });
+  return Promise.resolve({ root: downloads, path: file, sep: path.sep, shortPath, children });
 };
 
 /**

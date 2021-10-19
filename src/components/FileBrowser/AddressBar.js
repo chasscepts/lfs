@@ -25,13 +25,13 @@ const AddressBar = () => {
   const root = useSelector(selectRootDirectory);
   const dir = useSelector(selectCurrentDir);
   const error = useSelector(selectDirectoryError);
-  const rootPath = root && root.path;
 
-  if (!(rootPath && dir)) {
+  if (!dir) {
     return <div className={style.container}></div>;
   }
 
   const path = error ? error.path : dir.path;
+  const rootPath = dir.root;
   const relativePath = path.split(rootPath).filter(Boolean)[0];
   const parts = (relativePath || '').split(root.sep).filter(Boolean);
   let accm = rootPath.substr(0, rootPath.length - 1);
