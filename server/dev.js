@@ -82,6 +82,13 @@ app.post('/upload', upload.single('file'), (req, res) => {
   })
 });
 
+app.get('/create-dir', (req, res) => {
+  const { name, parent } = req.query;
+  fileServer.createFolder(name, parent)
+    .then((rslt) => res.json(rslt))
+    .catch((err) => res.status(404).json(err));
+});
+
 const server = app.listen(port, '0.0.0.0', () => {
   console.log(`LFS listening on port ${port}!`);
   openBrowser(`http://localhost:${port}`);

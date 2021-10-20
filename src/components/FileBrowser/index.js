@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  createDirAsync,
   loadDirAsync,
   selectCurrentDir, selectDirectoryError,
   selectDirectoryLoading,
@@ -12,8 +13,9 @@ import style from './css/index.module.css';
 import FileUploader from '../FileUploader';
 import ContextMenu from '../ContextMenu';
 import { openUploadForm } from '../../reducers/filesSlice';
+import { push } from '../../reducers/notificationSlice';
 
-const Body = () => {
+const Body = ({ newFolderClick }) => {
   const [menu, setMenu] = useState({ isOpen: false, x: 0, y: 0 });
   const dir = useSelector(selectCurrentDir);
   const error = useSelector(selectDirectoryError);
@@ -52,6 +54,10 @@ const Body = () => {
       closeMenu();
       dispatch(openUploadForm(true));
     },
+    'New Folder': () => {
+      closeMenu();
+      newFolderClick();
+    },
   };
 
   return (
@@ -70,18 +76,59 @@ const Body = () => {
 }
 
 export default function FileBrowser() {
+  const [newFolder, setNewFolder] = useState({ isOpen: false, name: '' });
   const dir = useSelector(selectCurrentDir);
   const loading = useSelector(selectDirectoryLoading);
   const dispatch = useDispatch();
   if (!dir) {
     dispatch(loadDirAsync());
   }
+
+  const newFolderClick = () => setNewFolder({ isOpen: true, name: '' });
+
+  const closeTextInput = () => setNewFolder({ isOpen: false, name: '' });
+
+  const handleValueChange = ({ target: { name, value } }) => {
+    if (name === 'newFolderName') {
+      setNewFolder({ isOpen: true, name: value });
+    }
+  };
+
+  const createFolder = (e) => {
+    e.preventDefault();
+    const lowcase = newFolder.name.toLowerCase();
+    const sameName = dir.children.find((child) => child.isDirectory && child.name.toLowerCase() === lowcase);
+    if (sameName) {
+      dispatch(push({ type: 'error', text: 'A directory with same name already exists' }));
+      return;
+    }
+    setNewFolder({ isOpen: false, name: '' });
+    dispatch(createDirAsync(newFolder.name, dir.path));
+  };
   
   return (
     <div className={style.container}>
       <AddressBar />
-      {!loading && <Body />}
+      {!loading && <Body newFolderClick={newFolderClick} />}
       {loading && <LoadingBar />}
+      {newFolder.isOpen && (
+      <div className={style.cover}>
+        <form className={style.textInputBody} onSubmit={createFolder}>
+          <div>New Folder Name</div>
+          <input
+            name="newFolderName"
+            className={style.textInputField}
+            type="text"
+            value={newFolder.name}
+            onChange={handleValueChange}
+          />
+          <div className={style.controls}>
+            <button className={style.btn} type="button" onClick={closeTextInput}>Cancel</button>
+            <button className={style.btn} type="submit">Enter</button>
+          </div>
+        </form>
+      </div>
+      )}
     </div>
   );
 }

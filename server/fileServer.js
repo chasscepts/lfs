@@ -101,15 +101,29 @@ const list = (dir) => {
   return Promise.resolve({ root: downloads, path: file, sep: path.sep, shortPath, children });
 };
 
-/**
- * 
- * @param {express.Response} res 
- */
-const upload = (res) => {
-
+const createFolder = (name, parent) => {
+  const dir = path.join(parent, name);
+  if (fs.existsSync(dir)) {
+    return Promise.reject({ message: 'Directory already exists' });
+  }
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    return Promise.resolve({
+      name,
+      parent,
+      path: dir,
+      size: 0,
+      isFile: false,
+      isDirectory: true,
+    });
+  } catch(err) {
+    console.log(err);
+    return Promise.reject({ message: 'You may not have the rights to create folder in the specified path' });
+  }
 };
 
 module.exports = {
   get,
   list,
+  createFolder,
 };

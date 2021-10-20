@@ -146,9 +146,20 @@ const listDir = (path) => new Promise((resolve, reject) => {
     .catch((err) => reject(err));
 });
 
+const createDir = (name, parent) => new Promise((resolve, reject) => {
+  let url = `/create-dir?name=${name}&parent=${parent}`;
+  fetcher(url)
+    .then((res) => res.json())
+    .then((json) => {
+      resolve(json);
+    })
+    .catch((err) => reject(normalizeError(err)));
+});
+
 export default {
   upload,
   downloadFile,
   listDir,
+  createDir,
   getFileContent,
 };

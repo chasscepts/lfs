@@ -24,8 +24,8 @@ const textRegex = /\.txt$|\.log$|\.s?css$|\.sass$|\.less$|\.xml$|\.js$|\.json$|\
 const imageRegex = /\.png$|\.jpe?g$|\.gif/i;
 const videoRegex = /\.mp4$|\.flv$|\.webv$|\.wmv$|\.mkv$|\.mov$|\.avi$/i;
 const audioRegex = /\.mp3$|\.wav$|\.aac$|\.weba$|\.wma$|\.flac$|\.aiff?$/i;
-const googleRegex = /\.docx?$|\.rtf$|\.odt$/i;
-const docRegex = /\.docx?$|\.rtf$/i;
+// const googleRegex = /\.docx?$|\.rtf$|\.odt$/i;
+// const docRegex = /\.docx?$|\.rtf$/i;
 const frameRegex = /\.pdf$|\.m?htm?l?$/i;
 
 const findViwer = ({ path, name }) => {
@@ -33,8 +33,8 @@ const findViwer = ({ path, name }) => {
   if (path.match(imageRegex)) return { name, type: 'blob', Viewer: ImageViewer };
   if (path.match(videoRegex)) return { name, type: 'blob', Viewer: VideoPlayer };
   if (path.match(audioRegex)) return { name, type: 'blob', Viewer: AudioPlayer };
-  if (path.match(googleRegex)) return { name, type: 'blob', Viewer: GoogleDocsViewer };
-  if (path.match(docRegex)) return { name, type: 'blob', Viewer: MSOfficeViewer };
+  // if (path.match(googleRegex)) return { name, type: 'blob', Viewer: GoogleDocsViewer };
+  // if (path.match(docRegex)) return { name, type: 'blob', Viewer: MSOfficeViewer };
   if (path.match(frameRegex)) return { name, type: 'blob', Viewer: IFrame };
   return { type: 'arraybuffer' };
 };
@@ -103,7 +103,7 @@ UnSupportedTypePrompt.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-const DefaultViewer = ({ name, onClose, content }) => {
+const DefaultViewer = ({ name, path, onClose, content }) => {
   const [isTextMode, setTextMode] = useState(false);
   const [textContent, setTextContent] = useState({ text: '', isError: false });
 
@@ -135,7 +135,7 @@ const DefaultViewer = ({ name, onClose, content }) => {
 
   if (textContent.isError) return <ErrorView msg={textContent.text} />
 
-  return <TextViewer content={textContent.text} />;
+  return <TextViewer content={textContent.text} name={name} path={path} />;
 };
 
 DefaultViewer.propTypes = {
@@ -216,7 +216,7 @@ const FileViewer = () => {
 
   return (
     <Wrapper title={file.path} onClose={closeViewer}>
-      <DefaultViewer name={file.name} onClose={closeViewer} content={content} />
+      <DefaultViewer name={file.name} path={file.path} onClose={closeViewer} content={content} />
     </Wrapper>
   );
 };

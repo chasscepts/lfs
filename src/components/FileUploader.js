@@ -4,16 +4,6 @@ import { selectCurrentDir, uploadFileAsync } from '../reducers/dirSlice';
 import { openUploadForm, selectIsUploadFormOpen } from '../reducers/filesSlice';
 
 const styles = {
-  // headerUploadBtn: {
-  //   backgroundColor: 'transparent',
-  //   backgroundImage: `url(${uploadIcon})`,
-  //   backgroundSize: '100% 100%',
-  //   width: '30px',
-  //   height: '20px',
-  //   outline: 'none',
-  //   border: 'none',
-  //   cursor: 'pointer',
-  // },
   uploadInput: {
     position: 'absolute',
     width: '1px',

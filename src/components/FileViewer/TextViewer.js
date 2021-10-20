@@ -93,6 +93,8 @@ const SVGViewer = ({ content, path, name }) => {
   return <ImageViewer content={url} path={path} name={name} />
 };
 
+const SVGViewer2 = ({ content, path, name }) => <div>{content}</div>;
+
 const IFrameAdapter = ({ content, path, name }) => {
   const [url, setUrl] = useState();
 

@@ -20,7 +20,8 @@ const slice = createSlice({
       state.loading = false;
       if (!state.rootDir) {
         state.rootDir = directory;
-      } else if (!fromState) {
+      }
+      if (!fromState) {
         state.directories.push(directory);
       }
     },
@@ -33,7 +34,10 @@ const slice = createSlice({
     },
     addFile: (state, { payload }) => {
       const dir = state.directories.find((dir) => dir.path === payload.parent);
-      if (!dir) return;
+      if (!dir) {
+        state.loading = false;
+        return;
+      }
       dir.children.push(payload);
       const currentDir = state.currentDir;
       if (currentDir && currentDir.path === payload.parent) {
@@ -95,6 +99,16 @@ export const uploadFileAsync = (data) => (dispatch) => {
     .catch((err) => {
       dispatch(setLoading(false));
       dispatch(push({ type: 'error', message: err.message || 'Unknown error occurred during file upload' }));
+    });
+};
+
+export const createDirAsync = (name, path) => (dispatch) => {
+  dispatch(setLoading(true));
+  api.createDir(name, path)
+    .then((directory) => dispatch(addFile(directory)))
+    .catch((err) => {
+      dispatch(push(`Unable to create directory: ${err.message}`));
+      dispatch(setLoading(false));
     });
 };
 

@@ -5,6 +5,7 @@ import store from './app/store';
 import './index.css';
 import FileBrowser from './components/FileBrowser';
 import FileViewer from './components/FileViewer';
+import Notifications from './components/Notifications';
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
         <>
           <FileBrowser />
           <FileViewer />
+          <Notifications />
         </>
       </Provider>
     </React.StrictMode>
