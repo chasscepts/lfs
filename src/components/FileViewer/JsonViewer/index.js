@@ -20,7 +20,7 @@ const styles = {
   keyRow: (depth) => ({
     position: 'relative',
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingLeft: `${10 + (depth * 16)}px`,
   }),
   close: (depth) => ({
