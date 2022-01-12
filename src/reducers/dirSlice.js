@@ -76,6 +76,7 @@ export const loadDirAsync = (path) => (dispatch, getState) => {
     const directory = getState().dir.directories.find((dir) => dir.path === path);
     if (directory) {
       dispatch(setCurrentDir({ directory, fromState: true }));
+      storage.saveLastDir(path);
       return;
     }
   } else {
@@ -85,6 +86,9 @@ export const loadDirAsync = (path) => (dispatch, getState) => {
   api.listDir(dir)
     .then((directory) => {
       dispatch(setCurrentDir({ directory, fromState: false }));
+      if (path) {
+        storage.saveLastDir(path);
+      }
     })
     .catch((err) => {
       dispatch(setError({ path: dir || '', originalError: err }));

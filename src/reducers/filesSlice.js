@@ -14,6 +14,8 @@ const slice = createSlice({
     activeFileContent: null,
     activeContentError: null,
     viewerLoading: false,
+    useHexa: false,
+    withViewerChooser: false,
   },
   reducers: {
     pushDownload: (state, { payload }) => {
@@ -35,14 +37,20 @@ const slice = createSlice({
       state.uploadFormState = { ...state.uploadFormState, ...payload };
     },
     setActiveFile: (state, { payload }) => {
-      if (state.activeFile && payload && state.activeFile.path !== payload.path) {
+      if (state.activeFile && payload && state.activeFile.path !== payload.file.path) {
         state.activeFileContent = null;
         state.activeContentError = null;
+        state.withViewerChooser = false;
       }
-      state.activeFile = payload;
-      if (!payload) {
+      if (payload) {
+        state.activeFile = payload.file;
+        state.withViewerChooser = payload.withViewerChooser;
+      } else {
         state.activeFileContent = null;
         state.activeContentError = null;
+        state.useHexa = false;
+        state.activeFile = null;
+        state.withViewerChooser = false;
       }
     },
     setActiveFileContent: (state, { payload }) => {
@@ -58,6 +66,9 @@ const slice = createSlice({
     setViewerLoading: (state, { payload }) => {
       state.viewerLoading = payload;
     },
+    setUseHexa: (state, { payload }) => {
+      state.useHexa = payload;
+    },
   },
 });
 
@@ -72,6 +83,7 @@ export const {
   setActiveFileContent,
   setActiveContentError,
   setViewerLoading,
+  setUseHexa,
 } = slice.actions;
 
 export const downloadFileAsync = (path) => (dispatch) => {
@@ -96,5 +108,7 @@ export const selectActiveFile = (state) => state.files.activeFile;
 export const selectActiveFileContent = (state) => state.files.activeFileContent;
 export const selectActiveContentError = (state) => state.files.activeContentError;
 export const selectViewerLoading = (state) => state.files.viewerLoading;
+export const selectWithViewerChooser = (state) => state.files.withViewerChooser;
+export const selectUseHexa = (state) => state.files.useHexa;
 
 export default slice.reducer;

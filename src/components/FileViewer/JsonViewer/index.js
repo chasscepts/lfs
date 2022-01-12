@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import arrow from './arrow.png';
+import { readObjectUrl } from '../../../utility';
+import LoadingBar from '../../LoadingBar';
+import ErrorView from '../ErrorView';
 /* eslint-disable react/forbid-prop-types */
 
 const colors = {
@@ -12,6 +16,12 @@ const colors = {
 };
 
 const styles = {
+  wrapper: {
+    width: '100%',
+    height: '100%',
+    padding: '15px 5px',
+    overflow: 'auto',
+  },
   container: {
     padding: '10px',
     height: '100%',
@@ -191,7 +201,7 @@ function JsonRow({
 //   root: false,
 // };
 
-function JsonViewer({ json }) {
+function SimpleJsonViewer({ json }) {
   let obj = json;
   if (typeof json === 'string') {
     try {
@@ -211,21 +221,31 @@ function JsonViewer({ json }) {
   return <JsonRow value={obj} depth={0} root />;
 }
 
-const css = {
-  container: {
-    width: '100%',
-    height: '100%',
-    padding: '15px 5px',
-    overflow: 'auto',
-  },
-}
+const JsonViewer = ({ content }) => (
+  <div style={styles.wrapper}><SimpleJsonViewer json={content} /></div>
+);
 
-export default ({ content }) => (<div style={css.container}><JsonViewer json={content} /></div>);
+export const JsonViewerAdapter = ({ content }) => {
+  const [state, setState] = useState({ json: null, error: null });
 
-// JsonViewer.propTypes = {
-//   json: PropTypes.any,
-// };
+  useEffect(() => {
+    readObjectUrl(content, 'text')
+      .then((text) => JSON.parse(text))
+      .then((json) => setState({ json, error: null }))
+      .catch((err) => setState({ json: null, error: err.message || 'An error occurred while reading data' }));
 
-// JsonViewer.defaultProps = {
-//   json: null,
-// };
+    return () => URL.revokeObjectURL(content);
+  }, [content]);
+
+  if (!(state.error || state.json)) return <LoadingBar />;
+
+  if (state.json) return <JsonViewer content={state.json} />
+
+  return <ErrorView msg={state.error} />
+};
+
+JsonViewerAdapter.propTypes = {
+  content: PropTypes.string.isRequired,
+};
+
+export default JsonViewer;

@@ -3,21 +3,13 @@ import PropTypes from 'prop-types';
 import ContextMenu from '../ContextMenu';
 import style from './css/file.module.css';
 import icon from '../../fileIcons';
+import api from '../../api';
 import { loadDirAsync, selectActivePath, setActivePath } from '../../reducers/dirSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { downloadFileAsync, setActiveFile } from '../../reducers/filesSlice';
-import storage from '../../clientPersistence/storage';
+import { downloadFileAsync, setActiveFile, setUseHexa } from '../../reducers/filesSlice';
+import { fileSize } from '../../utility';
 
 const name = (file) => file.length > 30 ? `${file.substr(0, 30)} ...` : file;
-
-const size = (bytes) => {
-  if (bytes < 1000) return `${bytes}B`;
-  if (bytes < 1000000) return `${Math.floor(bytes / 1000)}KB`;
-  if (bytes < 1000000000) return `${Math.floor(bytes / 1000000)}MB`;
-  if (bytes < 1000000000000) return `${Math.floor(bytes / 1000000000)}GB`;
-  if (bytes < 1000000000000000) return `${Math.floor(bytes / 1000000000000)}TB`;
-  return `${bytes}`;
-};
 
 const File = ({ file }) => {
   const [menu, setMenu] = useState({ isOpen: false, x: 0, y: 0 });
@@ -34,14 +26,17 @@ const File = ({ file }) => {
   };
 
   const openFile = () => {
-    dispatch(setActiveFile(file));
+    dispatch(setActiveFile({ file, withViewerChooser: false }));
   };
+
+  const openFileWith = () => {
+    dispatch(setActiveFile({ file, withViewerChooser: true }));
+  }
 
   const fileDBClick = (e) => {
     e.preventDefault();
     if (file.isDirectory) {
       dispatch(loadDirAsync(file.path));
-      storage.saveLastDir(file.path);
     } else {
       openFile();
     }
@@ -64,7 +59,7 @@ const File = ({ file }) => {
 
   let title = file.name;
   if (file.isFile) {
-    title = `${title}\nSize: ${size(file.size)}`;
+    title = `${title}\nSize: ${fileSize(file.size)}`;
   }
 
   const menuItems = {
@@ -79,10 +74,19 @@ const File = ({ file }) => {
   };
 
   if (file.isFile) {
+    menuItems['Open With ...'] = () => {
+      closeMenu();
+      openFileWith();
+    };
     menuItems.download = () => {
       closeMenu();
       dispatch(downloadFileAsync(file.path));
-    }
+    };
+    menuItems['View Hexdecimal'] = () => {
+      closeMenu();
+      dispatch(setUseHexa(true));
+      dispatch(setActiveFile(file));
+    };
   }
 
   const fileClass = isActive ? `${style.file} ${style.active}` : style.file;

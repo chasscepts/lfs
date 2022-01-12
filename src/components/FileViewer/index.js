@@ -1,22 +1,29 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 import { TextDecoder as FastTextDecoder } from 'fastestsmallesttextencoderdecoder';
 import {
   loadFileContentAsync,
   selectActiveContentError,
   selectActiveFile,
   selectActiveFileContent,
+  selectUseHexa,
   selectViewerLoading,
+  selectWithViewerChooser,
   setActiveFile,
 } from '../../reducers/filesSlice';
 import css from './index.module.css';
+import ErrorView from './ErrorView';
 import LoadingBar from '../LoadingBar';
 import TextViewer from './TextViewer';
 import ImageViewer from './ImageViewer';
 import VideoPlayer from './VideoPlayer';
 import AudioPlayer from './AudioPlayer';
-import IFrame, { MSOfficeViewer, GoogleDocsViewer } from './IFrame';
+import ZipViewer from './ZipViewer.js';
+import GZipViewer from './GZipViewer';
+import IFrame from './IFrame';
+import HexaViewer from './HexaViewer';
+import ViewerChooser from './ViewerChooser';
 
 const td = window.TextDecoder ? new TextDecoder() : new FastTextDecoder();
 
@@ -24,8 +31,8 @@ const textRegex = /\.txt$|\.log$|\.s?css$|\.sass$|\.less$|\.xml$|\.js$|\.json$|\
 const imageRegex = /\.png$|\.jpe?g$|\.gif/i;
 const videoRegex = /\.mp4$|\.flv$|\.webv$|\.wmv$|\.mkv$|\.mov$|\.avi$/i;
 const audioRegex = /\.mp3$|\.wav$|\.aac$|\.weba$|\.wma$|\.flac$|\.aiff?$/i;
-// const googleRegex = /\.docx?$|\.rtf$|\.odt$/i;
-// const docRegex = /\.docx?$|\.rtf$/i;
+const zipRegex = /\.docx$|\.zip$/i;
+const gzRegex = /\.gz$/i;
 const frameRegex = /\.pdf$|\.m?htm?l?$/i;
 
 const findViwer = ({ path, name }) => {
@@ -33,8 +40,8 @@ const findViwer = ({ path, name }) => {
   if (path.match(imageRegex)) return { name, type: 'blob', Viewer: ImageViewer };
   if (path.match(videoRegex)) return { name, type: 'blob', Viewer: VideoPlayer };
   if (path.match(audioRegex)) return { name, type: 'blob', Viewer: AudioPlayer };
-  // if (path.match(googleRegex)) return { name, type: 'blob', Viewer: GoogleDocsViewer };
-  // if (path.match(docRegex)) return { name, type: 'blob', Viewer: MSOfficeViewer };
+  if (path.match(zipRegex)) return { name, type: 'arraybuffer', Viewer: ZipViewer };
+  if (path.match(gzRegex)) return { name, type: 'arraybuffer', Viewer: GZipViewer };
   if (path.match(frameRegex)) return { name, type: 'blob', Viewer: IFrame };
   return { type: 'arraybuffer' };
 };
@@ -63,20 +70,6 @@ Wrapper.propTypes = {
 
 Wrapper.defaultProps = {
   children: null,
-};
-
-const ErrorView = ({ msg }) => {
-  return (
-    <div className={css.centerChild}>
-      <div className={css.middleChild} style={{ padding: '40px' }}>
-        <div className={css.errorText}>{msg}</div>
-      </div>
-    </div>
-  );
-};
-
-ErrorView.propTypes = {
-  msg: PropTypes.string.isRequired,
 };
 
 const UnSupportedTypePrompt = ({ name, viewAsText, onClose }) => {
@@ -149,13 +142,16 @@ const FileViewer = () => {
   const content = useSelector(selectActiveFileContent);
   const loading = useSelector(selectViewerLoading);
   const error = useSelector(selectActiveContentError);
+  const useHexa = useSelector(selectUseHexa);
+  const withViewerChooser = useSelector(selectWithViewerChooser);
   const dispatch = useDispatch();
 
   useEffect(() => {
     if (file) {
-      if (viewer) {
+      if (viewer || withViewerChooser) {
         if (!(content || loading || error)) {
-          dispatch(loadFileContentAsync(file.path, viewer.type));
+          const type = withViewerChooser ? 'arraybuffer' : viewer.type;
+          dispatch(loadFileContentAsync(file.path, type));
         }
       } else {
         setViewer(findViwer(file));
@@ -163,11 +159,11 @@ const FileViewer = () => {
     } else if (viewer) {
       setViewer(null);
     }
-  }, [file, content, loading, error, viewer]);
+  }, [file, content, loading, error, viewer, withViewerChooser]);
 
   if (!file) return <></>;
 
-  if (!viewer) return <></>;
+  if (!(viewer || withViewerChooser)) return <></>;
 
   const closeViewer = () => {
     if (viewer && viewer.type !== 'text') {
@@ -180,39 +176,43 @@ const FileViewer = () => {
     dispatch(setActiveFile(null));
   }
 
-  if (loading) {
-    return (
-      <Wrapper title={file.path} onClose={closeViewer}>
-        <LoadingBar />
-      </Wrapper>
-    );
-  }
+  if (loading) return (
+    <Wrapper title={file.path} onClose={closeViewer}>
+      <LoadingBar />
+    </Wrapper>
+  );
 
-  if (error) {
-    return (
-      <Wrapper title={file.path} onClose={closeViewer}>
-        <ErrorView msg={error.message} />
-      </Wrapper>
-    );
-  }
+  if (error) return (
+    <Wrapper title={file.path} onClose={closeViewer}>
+      <ErrorView msg={error.message} />
+    </Wrapper>
+  );
 
-  if (!content) {
-    return (
-      <Wrapper title={file.path} onClose={closeViewer}>
-        <ErrorView msg="Something is not right. Waiting to auto recover ..." />
-      </Wrapper>
-    );
-  }
+  if (!content) return (
+    <Wrapper title={file.path} onClose={closeViewer}>
+      <ErrorView msg="Something is not right. Waiting to auto recover ..." />
+    </Wrapper>
+  );
+
+  if (useHexa) return (
+    <Wrapper title={file.path} onClose={closeViewer}>
+      <HexaViewer content={content} name={name} path={file.path} />
+    </Wrapper>
+  );
+
+  if (withViewerChooser) return (
+    <Wrapper title={file.path} onClose={closeViewer}>
+      <ViewerChooser url={content} name={name} />
+    </Wrapper>
+  );
 
   const { Viewer, name } = viewer;
 
-  if (Viewer) {
-    return (
-      <Wrapper title={file.path} onClose={closeViewer}>
-        <Viewer content={content} name={name} path={file.path} />
+  if (Viewer) return (
+    <Wrapper title={file.path} onClose={closeViewer}>
+      <Viewer content={content} name={name} path={file.path} />
     </Wrapper>
-    );
-  }
+  );
 
   return (
     <Wrapper title={file.path} onClose={closeViewer}>

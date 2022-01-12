@@ -1,5 +1,6 @@
 import audio from './audio.png';
 import video from './video.png';
+import _3gp from './3gp.png';
 import pdf from './pdf.png';
 import folder from './folder.png';
 import file from './file.png';
@@ -37,6 +38,7 @@ export default function icon(name, isDir) {
   if (name.match(/\.mp4$|\.flv$|\.webv$|\.wmv$|\.mkv$|\.mov$|\.avi/i)) return video;
   if (name.match(/\.mp3$/i)) return mp3;
   if (name.match(/\.png$|\.jpe?g$|\.gif/i)) return image;
+  if (name.match(/\.3gp$/i)) return _3gp;
   if (name.match(/\.pdf$/i)) return pdf;
   if (name.match(/\.php$/i)) return php;
   if (name.match(/\.js$/i)) return js;

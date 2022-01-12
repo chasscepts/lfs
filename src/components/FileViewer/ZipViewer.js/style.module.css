@@ -1,0 +1,109 @@
+.container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+}
+
+.aside {
+  flex: 0 0 300px;
+  height: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  border-right: 1px solid #ddd;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.fileTree {
+  flex: 1;
+  overflow: auto;
+}
+
+.fileInfoHeader {
+  flex: 0;
+  padding: 5px;
+  text-align: center;
+  color: #fff;
+  background-color: #42a6db;
+  border: 1px solid #1a6c99;
+  font-weight: bold;
+}
+
+.fileInfo {
+  flex: 0 0 25%;
+  max-height: 200px;
+  background-color: #b9dce7;
+  padding: 15px;
+}
+
+.fileInfoRow {
+  display: flex;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.fileInfoLabel {
+  flex: 0 0 90px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.fileInfoValue {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-right: 15px;
+}
+
+.fileBtn,
+.dirBtn {
+  outline: none;
+  border: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 5px 0;
+  background-color: transparent;
+}
+
+.fileBtn.selected {
+  background-color: #1c92d2;
+  color: #fff;
+  font-weight: bold;
+}
+
+.fileBtn:hover {
+  background-color: #42a6db;
+}
+
+.dirBtn {
+  position: relative;
+  border: 1px solid #eee;
+  border-radius: 3px;
+}
+
+.dirBtn:hover {
+  border-color: #ddd;
+}
+
+.dirBtn::before {
+  content: '\022BF';
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  transform: rotate(-45deg);
+  background-color: transparent;
+  color: #333;
+}
+
+.dirBtn.expanded::before {
+  content: \025C2;
+  transform: rotate(0deg);
+}
