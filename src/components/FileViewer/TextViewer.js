@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import ImageViewer from './ImageViewer';
+import ImageViewer, { SvgViewer } from './ImageViewer';
 import IFrame, {WebPageViewer} from './IFrame';
 import JsonViewer from './JsonViewer';
 import { TextEncoder as FastTextEncoder } from 'fastestsmallesttextencoderdecoder';
@@ -90,7 +90,7 @@ const SVGViewer = ({ content, path, name }) => {
 
   if (!url) return <></>;
 
-  return <ImageViewer content={url} path={path} name={name} />
+  return <SvgViewer content={url} path={path} name={name} />
 };
 
 const SVGViewer2 = ({ content, path, name }) => <div>{content}</div>;
@@ -111,7 +111,7 @@ const IFrameAdapter = ({ content, path, name }) => {
 };
 
 const fileHandlers = [
-  { id: 1, displayName: 'Image Viewer', pattern: /\.svg$/i, Viewer: SVGViewer },
+  { id: 1, displayName: 'Image Viewer', pattern: /\.svg$/i, Viewer: SvgViewer },
   { id: 2, displayName: 'Web Page Viewer', pattern: /\.m?htm?l?$/i, Viewer: WebPageViewer },
   { id: 3, displayName: 'JSON Viewer', pattern: /\.json$/i, Viewer: JsonViewer },
 ]
