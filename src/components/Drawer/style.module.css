@@ -1,0 +1,27 @@
+.drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background-color: #ddd;
+  overflow: hidden;
+  transition: width 0.3s linear;
+}
+
+.drawer.open {
+  width: 350px;
+}
+
+.header {
+  padding: 5px;
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid #bbb;
+}
+
+.body {
+  flex: 1;
+  overflow: auto;
+  padding: 10px;
+}

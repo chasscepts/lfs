@@ -7,6 +7,7 @@ import FileBrowser from './components/FileBrowser';
 import FileViewer from './components/FileViewer';
 import Notifications from './components/Notifications';
 import TestComponent from './components/TestComponent';
+import Drawer from './components/Drawer';
 
 const styles = {
   testBtn: {
@@ -41,6 +42,7 @@ const App = () => {
         <div>
           <FileBrowser />
           <FileViewer />
+          <Drawer />
           <Notifications />
           <button style={styles.testBtn} type="button" onClick={toggleMode}><span>+</span></button>
         </div>

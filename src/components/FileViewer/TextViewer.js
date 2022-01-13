@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import ImageViewer from './ImageViewer';
-import IFrame, {WebPageViewer} from './IFrame';
+import Prism from 'prismjs';
+import { SvgViewer } from './ImageViewer';
+import {WebPageViewer} from './IFrame';
 import JsonViewer from './JsonViewer';
 import { TextEncoder as FastTextEncoder } from 'fastestsmallesttextencoderdecoder';
 const encoder = window.TextEncoder ? new TextEncoder() : new FastTextEncoder();
@@ -68,59 +69,58 @@ const styles = {
   },
   preCon: {
     flex: 1,
-    overflow: 'auto',
-    padding: '25px',
+    overflow: 'hidden',
+    padding: '3px',
   },
 };
 
-const toUrl = (text) => {
-  const blob = new Blob([encoder.encode(text)]);
-  return window.URL.createObjectURL(blob);
-};
-
-const SVGViewer = ({ content, path, name }) => {
-  const [url, setUrl] = useState();
-
-  useEffect(() => {
-    const temp = toUrl(content);
-    setUrl(temp);
-
-    return () => window.URL.revokeObjectURL(temp);
-  }, [content]);
-
-  if (!url) return <></>;
-
-  return <ImageViewer content={url} path={path} name={name} />
-};
-
-const SVGViewer2 = ({ content, path, name }) => <div>{content}</div>;
-
-const IFrameAdapter = ({ content, path, name }) => {
-  const [url, setUrl] = useState();
-
-  useEffect(() => {
-    const temp = toUrl(content);
-    setUrl(temp);
-
-    return () => window.URL.revokeObjectURL(temp);
-  }, [content]);
-
-  if (!url) return <></>;
-
-  return <IFrame content={url} path={path} name={name} />
-};
-
 const fileHandlers = [
-  { id: 1, displayName: 'Image Viewer', pattern: /\.svg$/i, Viewer: SVGViewer },
+  { id: 1, displayName: 'Image Viewer', pattern: /\.svg$/i, Viewer: SvgViewer },
   { id: 2, displayName: 'Web Page Viewer', pattern: /\.m?htm?l?$/i, Viewer: WebPageViewer },
   { id: 3, displayName: 'JSON Viewer', pattern: /\.json$/i, Viewer: JsonViewer },
 ]
 
+/**
+ * @param {string} name filename
+ */
+const getCodeLanguage = (name) => {
+  const idx = name.lastIndexOf('.');
+  if (idx < 0) return null;
+  const ext = name.substring(idx + 1);
+
+  switch(ext) {
+    case 'js':
+    case 'css':
+    case 'php':
+    case 'c':
+    case 'cs':
+    case 'cpp':
+    case 'csv':
+    case 'svg':
+    case 'html':
+    case 'xml':
+    case 'py':
+    case 'rb':
+    case 'java':
+    case 'ini':
+    case 'md':
+    case 'json':
+      return `language-${ext}`;
+    case 'jsx':
+      return 'language-js';
+    case 'htm':
+      return 'language-html';
+    default:
+      return null;
+  }
+};
+
 const TextViewer = ({ content, path, name }) => {
-  const [wrap, setWrap] = useState(false);
+  const [wrap, setWrap] = useState(true);
   const [handlerId, setHandlerId] = useState('');
   const [handlers, setHandlers] = useState([]);
   const [selectedHandlerId, setSelectedHandlerId] = useState(null);
+  const codeBlock = useRef(null);
 
   const handleWrapChange = () => setWrap(!wrap);
 
@@ -130,13 +130,31 @@ const TextViewer = ({ content, path, name }) => {
     setHandlerId('');
   }, [path]);
 
+  useEffect(() => {
+    if (codeBlock.current) {
+      Prism.highlightElement(codeBlock.current);
+    }
+  }, [content, wrap, handlerId, handlers, selectedHandlerId]);
+
   const useSelectedHandlerId = () => setHandlerId(selectedHandlerId);
 
   const clearHandlerId = () => setHandlerId('');
 
   const handleSelect = ({ target: { value } }) => setSelectedHandlerId(value);
 
-  const preClass = wrap ? 'pre-wrap' : '';
+  let wrapStyle = null;
+  let preStyle = {
+    height: '100%',
+    overflow: 'auto',
+  };
+  if (wrap) {
+    wrapStyle = {
+      whiteSpace: 'pre-wrap',
+      wordWrap: 'break-word',
+    };
+
+    preStyle = { ...preStyle, ...wrapStyle };
+  }
 
   let Viewer;
   if (handlerId) {
@@ -145,6 +163,11 @@ const TextViewer = ({ content, path, name }) => {
       Viewer = handler.Viewer;
     }
   }
+
+  const lang = getCodeLanguage(name);
+
+  const preConStyle = lang ? { ...styles.preCon, 
+    backgroundColor: '#f5f2f0' } : styles.preCon;
 
   return (
     <div style={styles.container}>
@@ -174,8 +197,13 @@ const TextViewer = ({ content, path, name }) => {
         <Viewer content={content} path={path} name={name} />
         )}
         {!Viewer && (
-        <div style={styles.preCon}>
-          <pre className={preClass}>{content}</pre>
+        <div style={preConStyle}>
+          <pre style={preStyle}>
+            {lang && (
+              <code style={wrapStyle} className={lang} ref={codeBlock}>{content}</code>
+            )}
+            {!lang && content}
+          </pre>
         </div>
         )}
       </div>

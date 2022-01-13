@@ -80,7 +80,8 @@ const File = ({ file }) => {
     };
     menuItems.download = () => {
       closeMenu();
-      dispatch(downloadFileAsync(file.path));
+      console.log({File: file.path});
+      dispatch(downloadFileAsync(file.path, file.name));
     };
     menuItems['View Hexdecimal'] = () => {
       closeMenu();
