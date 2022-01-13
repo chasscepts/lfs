@@ -8,6 +8,8 @@ import { loadDirAsync, selectActivePath, setActivePath } from '../../reducers/di
 import { useDispatch, useSelector } from 'react-redux';
 import { downloadFileAsync, setActiveFile, setUseHexa } from '../../reducers/filesSlice';
 import { fileSize } from '../../utility';
+import { createBookmark, getAllBookmarks } from '../../utility/clientStorage';
+import { setBookmarks } from '../../reducers/bookmarkSlice';
 
 const name = (file) => file.length > 30 ? `${file.substr(0, 30)} ...` : file;
 
@@ -80,13 +82,23 @@ const File = ({ file }) => {
     };
     menuItems.download = () => {
       closeMenu();
-      dispatch(downloadFileAsync(file.path));
+      dispatch(downloadFileAsync(file.path, file.name));
     };
     menuItems['View Hexdecimal'] = () => {
       closeMenu();
       dispatch(setUseHexa(true));
       dispatch(setActiveFile(file));
     };
+  } else if (file.isDirectory) {
+    const bookmarks = getAllBookmarks();
+    const existing = bookmarks.find((b) => b.path === file.path);
+    if (!existing) {
+      menuItems['Bookmark Folder'] = () => {
+        closeMenu();
+        createBookmark(file.path, file.name);
+        dispatch(setBookmarks(getAllBookmarks()));
+      };
+    }
   }
 
   const fileClass = isActive ? `${style.file} ${style.active}` : style.file;

@@ -52,7 +52,7 @@ const normalizeError = (err) => {
         }),
       })
     } else {
-      reject({ message: `Server responded with status code ${xhr.status}.\n Reason: ${xhr.statusText}` });
+      reject({ message: `Server responded with status code ${xhr.status}.\n Reason: ${xhr.responseText || xhr.statusText}` });
     }
   };
   xhr.send();
@@ -93,10 +93,12 @@ const upload = (url, formData) => new Promise((resolve, reject) => {
   xhr.send(formData);
 });
 
-const downloadFile = (path) => new Promise((resolve, reject) => {
+const downloadFile = (path, name) => new Promise((resolve, reject) => {
+  console.log({API: path});
   fetcher(`/download?path=${path}`, { responseType: 'blob' })
   .then((res) => res.body())
   .then((data) => {
+    const idx = path.lastIndexOf('/');
     if (typeof window.navigator.msSaveBlob === 'function') {
       window.navigator.msSaveBlob(data, name);
     } else {

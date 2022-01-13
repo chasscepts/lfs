@@ -87,14 +87,17 @@ const list = (dir) => {
         size: stat.size,
         isFile: stat.isFile(),
         isDirectory: stat.isDirectory(),
+        sep: path.sep,
       });
     } catch {}
     return accm;
   }, []).filter((file) => file.isDirectory || file.isFile).sort((a, b) => {
     if (a.isDirectory && b.isFile) return -1;
     if (b.isDirectory && a.isFile) return 1;
-    if (a.path < b.path) return -1;
-    if (a.path > b.path) return 1;
+    const nameA = a.name.toLowerCase();
+    const nameB = b.name.toLowerCase();
+    if (nameA < nameB) return -1;
+    if (nameA > nameB) return 1;
     return 0;
   });
 

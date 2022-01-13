@@ -22,19 +22,26 @@ import AudioPlayer from './AudioPlayer';
 import ZipViewer from './ZipViewer.js';
 import GZipViewer from './GZipViewer';
 import IFrame from './IFrame';
+import IconViewer from './IconViewer';
 import HexaViewer from './HexaViewer';
 import ViewerChooser from './ViewerChooser';
 
 const td = window.TextDecoder ? new TextDecoder() : new FastTextDecoder();
 
-const textRegex = /\.txt$|\.log$|\.s?css$|\.sass$|\.less$|\.xml$|\.js$|\.json$|\.m?htm?l?$|\.svg$|\.md$|\.ini$|\.config$|\.properties$|\.csv$|\.cs$|\.php$/i;
+const textRegex = /\.txt$|\.log$|\.s?css$|\.sass$|\.rb$|\.java$|\.less$|\.xml$|\.jsx?$|\.json$|\.m?htm?l?$|\.svg$|\.md$|\.ini$|\.config$|\.properties$|\.csv$|\.cs$|\.php$|\.c?s?pp$|\.py$/i;
 const imageRegex = /\.png$|\.jpe?g$|\.gif/i;
 const videoRegex = /\.mp4$|\.flv$|\.webv$|\.wmv$|\.mkv$|\.mov$|\.avi$/i;
 const audioRegex = /\.mp3$|\.wav$|\.aac$|\.weba$|\.wma$|\.flac$|\.aiff?$/i;
 const zipRegex = /\.docx$|\.zip$/i;
 const gzRegex = /\.gz$/i;
 const frameRegex = /\.pdf$|\.m?htm?l?$/i;
+const iconRegex = /\.ico$/;
 
+/**
+ * @param {Object} param
+ * @param {string} param.path
+ * @param {string} param.name
+ */
 const findViwer = ({ path, name }) => {
   if (path.match(textRegex)) return { name, path, type: 'text', Viewer: TextViewer };
   if (path.match(imageRegex)) return { name, type: 'blob', Viewer: ImageViewer };
@@ -43,6 +50,7 @@ const findViwer = ({ path, name }) => {
   if (path.match(zipRegex)) return { name, type: 'arraybuffer', Viewer: ZipViewer };
   if (path.match(gzRegex)) return { name, type: 'arraybuffer', Viewer: GZipViewer };
   if (path.match(frameRegex)) return { name, type: 'blob', Viewer: IFrame };
+  if (path.match(iconRegex)) return { name, type: 'arraybuffer', Viewer: IconViewer };
   return { type: 'arraybuffer' };
 };
 

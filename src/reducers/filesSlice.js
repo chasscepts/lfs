@@ -86,11 +86,11 @@ export const {
   setUseHexa,
 } = slice.actions;
 
-export const downloadFileAsync = (path) => (dispatch) => {
+export const downloadFileAsync = (path, name) => (dispatch) => {
   const jobId = `${id}`;
   id += 1;
   dispatch(pushDownload({ id: jobId, path }));
-  api.downloadFile(path)
+  api.downloadFile(path, name)
     .then(() => dispatch(popDownload(id)))
     .catch((err) => console.log(err));
 };
