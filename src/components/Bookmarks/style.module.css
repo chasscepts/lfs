@@ -17,6 +17,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  background-color: #ddd;
 }
 
 .listItem {
@@ -26,19 +27,107 @@
 }
 
 .listItem:hover {
-  background-color: #26478f;
-}
-
-.listItem:hover > .openBtn {
-  color: #fff;
+  background-color: #62696e;
 }
 
 .openBtn {
   background-color: transparent;
   border: none;
   outline: none;
-  padding: 5px;
+  padding: 3px 5px;
   flex: 1;
   text-align: left;
   cursor: pointer;
+}
+
+.listItem:hover > .openBtn {
+  color: #fff;
+}
+
+.controls {
+  align-items: center;
+  display: none;
+  padding: 0 10px;
+}
+
+.listItem:hover > .controls {
+  display: flex;
+}
+
+.controlBtn {
+  background-color: transparent;
+  outline: none;
+  border: none;
+  width: 16px;
+  height: 16px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.controlBtn:first-child {
+  padding-left: 0;
+}
+
+.svg {
+  fill: #fff;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.editSlide {
+  max-height: 0;
+  transition: max-height 0.3s linear;
+}
+
+.editSlide.open {
+  max-height: 250px;
+}
+
+.editBody {
+  margin: 5px;
+  border: 1px solid #690808;
+  border-radius: 4px;
+  padding: 15px;
+}
+
+.editHeader {
+  color: #690808;
+}
+
+.editInput {
+  border: none;
+  outline: none;
+  display: block;
+  width: 100%;
+  padding: 7px;
+}
+
+.editControls {
+  margin-top: 15px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.editBtn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 15px;
+  font-weight: bold;
+  font-size: 0.8rem;
+  text-decoration: underline;
+}
+
+.editBtn:first-child {
+  margin-left: 0;
+}
+
+.editBtn.red {
+  color: #990808;
+}
+
+.editBtn.green {
+  color: rgb(6, 59, 6);
 }

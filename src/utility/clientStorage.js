@@ -30,6 +30,8 @@ const readObject = (key, defaultValue) => {
   }
 };
 
+const saveBookmarks = () => storage.setItem(KEYS.bookmark, JSON.stringify(bookmarks));
+
 /**
  * @param {Storage} store 
  */
@@ -46,9 +48,20 @@ export const getBookmark = (path) => bookmarks.find((b) => b.path === path);
 
 export const createBookmark = (path, title) => {
   bookmarks.push({ path, title });
+  saveBookmarks();
 };
 
-export const updateBookmark = (path, title) => createBookmark(path, title);
+export const updateBookmark = (path, title) => {
+  const bookmark = bookmarks.find((bk) => bk.path === path);
+  if (!bookmark) return;
+  bookmark.title = title;
+  saveBookmarks();
+};
+
+export const deleteBookmark = (path) => {
+  bookmarks = bookmarks.filter((bk) => bk.path !== path);
+  saveBookmarks();
+};
 
 const getStorage = () => storage;
 
