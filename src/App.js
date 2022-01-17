@@ -8,6 +8,7 @@ import FileViewer from './components/FileViewer';
 import Notifications from './components/Notifications';
 import TestComponent from './components/TestComponent';
 import Drawer from './components/Drawer';
+import Downloads from './components/Downloads';
 
 const styles = {
   testBtn: {
@@ -29,6 +30,19 @@ const styles = {
   },
 };
 
+const TestBtn = ({ onClick }) => {
+  return <></>;
+  // return (
+  //   <button
+  //     style={styles.testBtn}
+  //     type="button"
+  //     onClick={onClick}
+  //   >
+  //     <span>+</span>
+  //   </button>
+  // );
+};
+
 const App = () => {
   const [isTestMode, setTestMode] = useState(false);
 
@@ -43,8 +57,9 @@ const App = () => {
           <FileBrowser />
           <FileViewer />
           <Drawer />
+          <Downloads />
           <Notifications />
-          <button style={styles.testBtn} type="button" onClick={toggleMode}><span>+</span></button>
+          <TestBtn onClick={toggleMode} />
         </div>
       </Provider>
     </React.StrictMode>

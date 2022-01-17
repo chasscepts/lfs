@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import api from '../api';
+import { pushNotification } from './notificationSlice';
 
 let id = 0;
 
@@ -89,10 +90,13 @@ export const {
 export const downloadFileAsync = (path, name) => (dispatch) => {
   const jobId = `${id}`;
   id += 1;
-  dispatch(pushDownload({ id: jobId, path }));
-  api.downloadFile(path, name)
-    .then(() => dispatch(popDownload(id)))
-    .catch((err) => console.log(err));
+  dispatch(pushDownload({ id: jobId, name, path }));
+  api.downloadFile(path, name, jobId)
+    .then(() => dispatch(popDownload(jobId)))
+    .catch((err) => {
+      dispatch(popDownload(jobId))
+      dispatch(pushNotification({ type: 'error', message: err.message || `Downloading of path ${path} failed for unknown reasons` }));
+    });
 };
 
 export const loadFileContentAsync = (path, type) => (dispatch) => {
@@ -109,6 +113,7 @@ export const selectActiveFileContent = (state) => state.files.activeFileContent;
 export const selectActiveContentError = (state) => state.files.activeContentError;
 export const selectViewerLoading = (state) => state.files.viewerLoading;
 export const selectWithViewerChooser = (state) => state.files.withViewerChooser;
+export const selectDownloads = (state) => state.files.downloads;
 export const selectUseHexa = (state) => state.files.useHexa;
 
 export default slice.reducer;

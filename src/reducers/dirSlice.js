@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import api from '../api';
-import { push } from './notificationSlice';
+import { pushNotification } from './notificationSlice';
 import storage from '../clientPersistence/storage';
 
 const slice = createSlice({
@@ -102,7 +102,7 @@ export const uploadFileAsync = (data) => (dispatch) => {
     .then((file) => dispatch(addFile(file)))
     .catch((err) => {
       dispatch(setLoading(false));
-      dispatch(push({ type: 'error', message: err.message || 'Unknown error occurred during file upload' }));
+      dispatch(pushNotification({ type: 'error', message: err.message || 'Unknown error occurred during file upload' }));
     });
 };
 
@@ -111,7 +111,7 @@ export const createDirAsync = (name, path) => (dispatch) => {
   api.createDir(name, path)
     .then((directory) => dispatch(addFile(directory)))
     .catch((err) => {
-      dispatch(push(`Unable to create directory: ${err.message}`));
+      dispatch(pushNotification(`Unable to create directory: ${err.message}`));
       dispatch(setLoading(false));
     });
 };

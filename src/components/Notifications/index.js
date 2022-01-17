@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectNotifications, pop } from '../../reducers/notificationSlice';
+import { selectNotifications, popNotification } from '../../reducers/notificationSlice';
 import css from './index.module.css';
 
 const Notice = ({ notice }) => {
@@ -13,7 +13,7 @@ const Notice = ({ notice }) => {
 
   const close = () => {
     wrap.current.classList.remove(css.open);
-    setTimeout(() => dispatch(pop(notice.id)), 1000);
+    setTimeout(() => dispatch(popNotification(notice.id)), 1000);
   };
 
   let wrapClass = css.notice;
@@ -24,7 +24,7 @@ const Notice = ({ notice }) => {
   return (
     <div className={wrapClass} ref={wrap}>
       <div className={css.noticeInner}>
-        {notice.text}
+        {notice.message || notice.text}
         <button className={css.close} type="button" onClick={close}>X</button>
       </div>
     </div>

@@ -105,6 +105,7 @@ const FileUploader = () => {
   
   return (
     <form ref={form} className={formClass} onSubmit={upload} method="POST" encType="multipart/form-data">
+      <input type="hidden" name="path" value={dir.path} />
       <input
         style={styles.uploadInput}
         ref={fileInput}
@@ -112,7 +113,6 @@ const FileUploader = () => {
         name="file"
         onChange={handleFileChange}
       />
-      <input type="hidden" name="path" value={dir.path} />
       {state.file && (
       <div style={styles.uploadFormCover}>
         <div style={styles.uploadFormBody}>

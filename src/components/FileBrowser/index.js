@@ -13,7 +13,7 @@ import style from './css/index.module.css';
 import FileUploader from '../FileUploader';
 import ContextMenu from '../ContextMenu';
 import { openUploadForm } from '../../reducers/filesSlice';
-import { push } from '../../reducers/notificationSlice';
+import { pushNotification } from '../../reducers/notificationSlice';
 
 const Body = ({ newFolderClick }) => {
   const [menu, setMenu] = useState({ isOpen: false, x: 0, y: 0 });
@@ -99,7 +99,7 @@ export default function FileBrowser() {
     const lowcase = newFolder.name.toLowerCase();
     const sameName = dir.children.find((child) => child.isDirectory && child.name.toLowerCase() === lowcase);
     if (sameName) {
-      dispatch(push({ type: 'error', text: 'A directory with same name already exists' }));
+      dispatch(pushNotification({ type: 'error', text: 'A directory with same name already exists' }));
       return;
     }
     setNewFolder({ isOpen: false, name: '' });

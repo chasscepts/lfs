@@ -1,3 +1,5 @@
+import ProgressRelay from '../reducers/xhrProgressRelay';
+
 const normalizeError = (err) => {
   if (!err) {
     return { message: 'An unknown error encountered. Please try again.' };
@@ -22,15 +24,23 @@ const normalizeError = (err) => {
  * @param {string} url 
  * @returns
  */
- const fetcher = (url, options = { responseType: '' }) => new Promise((resolve, reject) => {
+const fetcher = (url, options = { responseType: '' }, onprogress = null) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
-
-  if (options && options.responseType) {
-    xhr.responseType = options.responseType;
-  }
-  
   xhr.open('GET', url);
+
+  if (options) {
+    if (options.responseType) {
+      xhr.responseType = options.responseType;
+    }
+    if (options.headers) {
+      Object.keys(options.headers).forEach((key) => {
+        xhr.setRequestHeader(key, options.headers[key]);
+      });
+    }
+  }
+
   xhr.onerror = (evt) => reject(evt);
+
   xhr.onload = () => {
     if (xhr.status === 200) {
       resolve({
@@ -55,6 +65,13 @@ const normalizeError = (err) => {
       reject({ message: `Server responded with status code ${xhr.status}.\n Reason: ${xhr.responseText || xhr.statusText}` });
     }
   };
+
+  if (onprogress) {
+    xhr.onprogress = (evt) => {
+      onprogress(evt.loaded, evt.total);
+    };
+  }
+  
   xhr.send();
 });
 
@@ -65,6 +82,7 @@ const normalizeError = (err) => {
 const upload = (url, formData) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
   xhr.open('POST', url);
+  //  xhr.setRequestHeader('content-type', 'multipart/form-data; boundary=****');
   xhr.onerror = () => reject({ message: 'Network error. Your request could not be completed' });
   xhr.onload = () => {
     if (xhr.status === 200) {
@@ -93,9 +111,8 @@ const upload = (url, formData) => new Promise((resolve, reject) => {
   xhr.send(formData);
 });
 
-const downloadFile = (path, name) => new Promise((resolve, reject) => {
-  console.log({API: path});
-  fetcher(`/download?path=${path}`, { responseType: 'blob' })
+const downloadFile = (path, name, progressId) => new Promise((resolve, reject) => {
+  fetcher(`/download?path=${path}`, { responseType: 'blob' }, ProgressRelay.createRelay(progressId))
   .then((res) => res.body())
   .then((data) => {
     const idx = path.lastIndexOf('/');
@@ -112,8 +129,12 @@ const downloadFile = (path, name) => new Promise((resolve, reject) => {
       window.URL.revokeObjectURL(url);
     }
     resolve();
+    ProgressRelay.removeRelay(progressId);
   })
-  .catch((err) => reject(normalizeError(err)));
+  .catch((err) => {
+    reject(normalizeError(err));
+    ProgressRelay.removeRelay(progressId);
+  });
 });
 
 const getFileContent = (path, type) => new Promise((resolve, reject) => {

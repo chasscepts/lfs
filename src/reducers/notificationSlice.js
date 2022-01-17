@@ -18,7 +18,10 @@ const slice = createSlice({
   },
 });
 
-export const { push, pop } = slice.actions;
+export const {
+  push: pushNotification,
+  pop: popNotification,
+} = slice.actions;
 
 export const selectNotifications = (state) => state.notification.notifications;
 

@@ -1,12 +1,54 @@
+const os = require('os');
 const fs = require('fs');
 const childProcess = require('child_process');
 const express = require('express');
 const webpack = require('webpack');
 const multer = require('multer');
+const path = require('path');
 const config = require('../webpack.config');
 const fileServer = require('./fileServer');
-const path = require('path');
-const upload = multer();
+
+const uploadFilePath = (dir, name) => {
+  const ext = path.extname(name);
+  const baseName = path.basename(name, ext);
+  let filename = name;
+  let counter = 0;
+  let file = path.join(dir, filename);
+  while(fs.existsSync(file)) {
+    counter += 1;
+    filename = `${baseName}-${counter}${ext}`;
+    file = path.join(dir, filename);
+  }
+  return { path: file, filename };
+};
+
+const uploadFileName = (dir, filename) => {
+  const ext = path.extname(filename);
+  const name = path.basename(filename, ext);
+  let newName = filename;
+  let counter = 0;
+  let file = path.join(dir, newName);
+  while(fs.existsSync(file)) {
+    counter += 1;
+    newName = `${name}-${counter}${ext}`;
+    file = path.join(dir, newName);
+  }
+  return newName;
+};
+
+const upload = multer({ storage: multer.diskStorage({
+  destination: function (req, file, cb) {
+    const { path: dir } = req.body;
+    const folder = dir ? dir : os.tmpdir();
+    cb(null, folder)
+  },
+  filename: function (req, file, cb) {
+    const { originalname } = file;
+    const { path: dir } = req.body;
+    const folder = dir ? dir : os.tmpdir();
+    cb(null, uploadFileName(folder, originalname));
+  }
+})}).single('file');
 
 const app = express();
 const compiler = webpack(config);
@@ -57,30 +99,97 @@ app.use(api).use(
   }),
 );
 
-app.post('/upload', upload.single('file'), (req, res) => {
-  const { originalname, buffer } = req.file;
-  const ext = path.extname(originalname);
-  const name = path.basename(originalname, ext);
-  let newName = originalname;
-  const { path: dir } = req.body;
-  let counter = 0;
-  let file = path.join(dir, newName);
-  while(fs.existsSync(file)) {
-    counter += 1;
-    newName = `${name}-${counter}${ext}`;
-    file = path.join(dir, newName);
-  }
-  fs.writeFileSync(file, buffer);
-  const stat = fs.statSync(file);
-  res.json({
-    name: newName,
-    parent: dir,
-    path: file,
-    size: stat.size,
-    isFile: true,
-    isDirectory: false,
-  })
+app.post('/upload', (req, res) => {
+  upload(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      console.log(err);
+      res.status(500).json({ message: err.message });
+      return;
+    } else if (err) {
+      console.log(err);
+      res.status(500).json({ message: err.message || 'Unable to upload file' });
+      return;
+    }
+
+    const { file: {
+      destination,
+      originalname,
+      size,
+      filename,
+      path,
+    } } = req;
+  
+    let dir;
+    let fName;
+    let fullpath;
+  
+    if (destination === os.tmpdir()) {
+      dir = req.body.dir;
+      const {
+        filename: tempName,
+        path: fPath,
+      } = uploadFilePath(dir, originalname);
+      fName = tempName;
+      fullpath = fPath;
+      fs.rename(path, fullpath);
+      console.log('Rename required');
+    } else {
+      dir = destination;
+      fName = filename;
+      fullpath = path;
+      console.log('Rename NOT necessary!!!');
+    }
+  
+    res.json({
+      name: fName,
+      parent: dir,
+      path: fullpath,
+      size,
+      isFile: true,
+      isDirectory: false,
+    });
+  });
 });
+
+// app.post('/upload', upload.single('file'), (req, res) => {
+//   const { file: {
+//     destination,
+//     originalname,
+//     size,
+//     filename,
+//     path,
+//   } } = req;
+
+//   let dir;
+//   let fName;
+//   let fullpath;
+
+//   if (destination === os.tmpdir()) {
+//     dir = req.body.dir;
+//     const {
+//       filename: tempName,
+//       path: fPath,
+//     } = uploadFilePath(dir, originalname);
+//     fName = tempName;
+//     fullpath = fPath;
+//     fs.rename(path, fullpath);
+//     console.log('Rename required');
+//   } else {
+//     dir = destination;
+//     fName = filename;
+//     fullpath = path;
+//     console.log('Rename NOT necessary!!!');
+//   }
+
+//   res.json({
+//     name: fName,
+//     parent: dir,
+//     path: fullpath,
+//     size,
+//     isFile: true,
+//     isDirectory: false,
+//   });
+// });
 
 app.get('/create-dir', (req, res) => {
   const { name, parent } = req.query;
