@@ -2,12 +2,13 @@
   display: flex;
   overflow: hidden;
   flex-direction: column;
+  flex: 1;
 }
 
 .header {
   font-size: 0.9rem;
   text-transform: uppercase;
-  color: #090e3b;
+  color: #0f1763;
   text-align: center;
   padding-bottom: 10px;
   border-bottom: 1px dotted #eee;

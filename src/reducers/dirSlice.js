@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import api from '../api';
 import { pushNotification } from './notificationSlice';
 import storage from '../clientPersistence/storage';
+import ProgressRelay from './xhrProgressRelay';
 
 const slice = createSlice({
   name: 'dir',
@@ -9,6 +10,7 @@ const slice = createSlice({
     directories: [],
     currentDir: null,
     loading: false,
+    uploadId: '',
     error: null,
     rootDir: null,
     activePath: null,
@@ -28,14 +30,18 @@ const slice = createSlice({
     setLoading: (state, { payload }) => {
       state.loading = payload;
     },
+    setUploadId: (state, { payload }) => {
+      state.uploadId = payload;
+    },
     setError: (state, { payload }) => {
       state.error = payload,
       state.loading = false;
     },
     addFile: (state, { payload }) => {
       const dir = state.directories.find((dir) => dir.path === payload.parent);
+      state.loading = false;
+      state.uploadId = '';
       if (!dir) {
-        state.loading = false;
         return;
       }
       dir.children.push(payload);
@@ -43,7 +49,6 @@ const slice = createSlice({
       if (currentDir && currentDir.path === payload.parent) {
         currentDir.children.push(payload);
       }
-      state.loading = false;
     },
     setActivePath: (state, { payload }) => {
       state.activePath = payload;
@@ -54,6 +59,7 @@ const slice = createSlice({
 export const {
   setCurrentDir,
   setLoading,
+  setUploadId,
   setError,
   addFile,
   setActivePath,
@@ -62,6 +68,8 @@ export const {
 export const selectCurrentDir = (state) => state.dir.currentDir;
 
 export const selectDirectoryLoading = (state) => state.dir.loading;
+
+export const selectUploadId = (state) => state.dir.uploadId;
 
 export const selectDirectoryError = (state) => state.dir.error;
 
@@ -95,14 +103,19 @@ export const loadDirAsync = (path) => (dispatch, getState) => {
     })
 };
 
-export const uploadFileAsync = (data) => (dispatch) => {
-  dispatch(setLoading(true));
-  api.upload('/upload', data)
+export const uploadFileAsync = (data, uid) => (dispatch) => {
+  const progressListener = ProgressRelay.createRelay(uid).source;
+  dispatch(setUploadId(uid));
+  api.upload('/upload', data, progressListener)
     .then((res) => res.json())
-    .then((file) => dispatch(addFile(file)))
+    .then((file) => {
+      dispatch(addFile(file));
+      ProgressRelay.removeRelay(uid);
+    })
     .catch((err) => {
-      dispatch(setLoading(false));
+      dispatch(setUploadId(''));
       dispatch(pushNotification({ type: 'error', message: err.message || 'Unknown error occurred during file upload' }));
+      ProgressRelay.removeRelay(uid);
     });
 };
 

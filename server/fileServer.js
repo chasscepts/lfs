@@ -1,7 +1,7 @@
 const fs = require('fs');
 const express = require('express');
 const path = require('path');
-const db = require('../db');
+const db = require('../database');
 const callable = require('../utils/callable');
 const multer = require('multer');
 

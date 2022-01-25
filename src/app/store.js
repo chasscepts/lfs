@@ -4,6 +4,7 @@ import filesReducer from '../reducers/filesSlice';
 import notificationReducer from '../reducers/notificationSlice';
 import drawerReducer from '../reducers/drawerSlice';
 import bookmarkReducer from '../reducers/bookmarkSlice';
+import userReducer from '../reducers/userSlice';
 
 export const createStore = () => configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const createStore = () => configureStore({
     notification: notificationReducer,
     drawer: drawerReducer,
     bookmark: bookmarkReducer,
+    user: userReducer,
   },
 });
 

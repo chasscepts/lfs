@@ -62,7 +62,7 @@ const fetcher = (url, options = { responseType: '' }, onprogress = null) => new 
         }),
       })
     } else {
-      reject({ message: `Server responded with status code ${xhr.status}.\n Reason: ${xhr.responseText || xhr.statusText}` });
+      reject({ message: `Server responded with status code ${xhr.status}.\n Reason: ${xhr.response || xhr.statusText}` });
     }
   };
 
@@ -75,15 +75,39 @@ const fetcher = (url, options = { responseType: '' }, onprogress = null) => new 
   xhr.send();
 });
 
+const login = (username, password) => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.responseType = 'json';
+    xhr.open('POST', '/auth');
+    xhr.onerror = (err) => reject(normalizeError(err));
+    xhr.onload = () => {
+      console.log(xhr.response);
+      if (xhr.status === 200) {
+        resolve(xhr.response);
+      } else {
+        reject({ message: `Server responded with status code ${xhr.status}.\n Reason: ${xhr.response || xhr.statusText}` });
+      }
+    };
+    const data = new FormData();
+    data.append('username', username);
+    data.append('password', password);
+    xhr.send(data);
+  })
+};
+
 /**
  * @param {string} url path
  * @param {FormData} formData 
  */
-const upload = (url, formData) => new Promise((resolve, reject) => {
+const upload = (url, formData, progressListener) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
   xhr.open('POST', url);
   //  xhr.setRequestHeader('content-type', 'multipart/form-data; boundary=****');
   xhr.onerror = () => reject({ message: 'Network error. Your request could not be completed' });
+
+  xhr.upload.onprogress = progressListener;
+
   xhr.onload = () => {
     if (xhr.status === 200) {
       resolve({
@@ -103,7 +127,7 @@ const upload = (url, formData) => new Promise((resolve, reject) => {
             rej(new Error('Response is not a valid JSON Object'));
           }
         }),
-      })
+      });
     } else {
       reject(new Error(`Server responded with status code ${xhr.status}.\n Reason: ${xhr.statusText}`));
     }
@@ -185,4 +209,5 @@ export default {
   listDir,
   createDir,
   getFileContent,
+  login,
 };

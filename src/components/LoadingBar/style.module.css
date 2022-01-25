@@ -10,6 +10,10 @@
   height: 100%;
 }
 
+.children {
+  margin-top: 15px;
+}
+
 /* ///////////  https://loading.io/css/  //////////// */
 .ldsSpinner {
   color: transparent;

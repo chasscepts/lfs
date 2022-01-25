@@ -1,53 +1,227 @@
-const fs = require('fs');
-const path = require('path');
-const { node } = require('webpack');
-const dir = '/store';
+const arg = require('arg');
+const inquire = require('inquirer');
+const lfsConsole = require('./lfsConsole');
+const migration = require('./migration');
+const prompt = require('./prompt');
+const User = require('./User');
 
-if (fs.existsSync(dir)) {
-  fs.mkdirSync(dir, { recursive: true });
-}
+const argv = process.argv.slice(2);
 
-let db = {};
+console.log('.......... LFS DATABASE ..........');
 
-const file = process.env.NODE_ENV === 'development' ? 'dev.json' : 'db.json';
-
-const dbPath = path.join(dir, file);
-
-if (fs.existsSync(dbPath)) {
-  try {
-    const temp = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
-    db = temp;
-  } catch {
-    console.log('Database may be corrupted! Saving to db will over write current content.');
+const openConsole = (withPrompts = false) => {
+  const usernameTag = '--username';
+  const passwordTag = '--password';
+  let args;
+  let confirm = false;
+  if (withPrompts) {
+    args = {};
+    confirm = true;
+  } else {
+    try {
+      args = arg({
+        [usernameTag]: String,
+        [passwordTag]: String,
+        '-n': usernameTag,
+        '-p': passwordTag,
+      },  { argv });
+    } catch {
+      console.log('Unknown args passed to cmd. Please consult the documentation for correct usage.');
+      process.exit(-1);
+    }
   }
-}
-
-const save = () => fs.writeFileSync(dbPath, JSON.stringify(db));
-
-const find = (key) => {
-  if (Object.keys(db).indexOf(key) < 0) {
-    throw new Error(`${key} was not found in database!`);
+  let username = args[usernameTag];
+  let password = args[passwordTag];
+  let questions = [];
+  if (!username) {
+    questions.push({
+      name: 'username',
+      message: 'Enter username',
+    });
   }
-  return db[key];
+  if (!password) {
+    questions.push({
+      type: 'password',
+      name: 'password',
+      message: 'Enter password',
+    });
+  }
+
+  if (questions.length) {
+    inquire.prompt(questions)
+    .then((answers) => {
+      if (answers.username) {
+        username = answers.username;
+      }
+      if (answers.password) {
+        password = answers.password;
+      }
+      if (!username) {
+        console.log('Username not provided!. Exiting LFS Console ...');
+        return;
+      }
+      if (!password) {
+        console.log('Password not provided!. Exiting LFS Console ...');
+        return;
+      }
+      lfsConsole.open(username, password);
+    })
+    .catch((err) => {
+      console.trace(err);
+    });
+  } else {
+    lfsConsole.open(username, password);
+  }
+};
+
+const createUser = (withPrompts = false) => {
+  const usernameTag = '--username';
+  const passwordTag = '--password';
+  let args;
+  let confirm = false;
+  if (withPrompts) {
+    args = {};
+    confirm = true;
+  } else {
+    try {
+      args = arg({
+        [usernameTag]: String,
+        [passwordTag]: String,
+        '-n': usernameTag,
+        '-p': passwordTag,
+      },  { argv });
+    } catch {
+      console.log('Unknown args passed to cmd. Please consult the documentation for correct usage.');
+      process.exit(-1);
+    }
+  }
+  let username = args[usernameTag];
+  let password = args[passwordTag];
+  let questions = [];
+  if (!username) {
+    questions.push({
+      name: 'username',
+      message: 'Enter username',
+    });
+  }
+  if (!password) {
+    questions.push({
+      type: 'password',
+      name: 'password',
+      message: 'Enter password',
+    });
+    questions.push({
+      type: 'password',
+      name: 'confirmPassword',
+      message: 'Confirm password',
+    });
+  }
+
+  if (questions.length) {
+    inquire.prompt(questions)
+    .then((answers) => {
+      if (answers.username) {
+        username = answers.username;
+      }
+      if (answers.password) {
+        password = answers.password;
+      }
+      if (!username) {
+        console.log('Username not provided!. Exiting LFS ...');
+        return;
+      }
+      if (!password) {
+        console.log('Password not provided!. Exiting LFS ...');
+        return;
+      }
+      if (password !== answers.confirmPassword) {
+        console.log('Provided passwords do not match!. Exiting LFS ...');
+        return;
+      }
+      User.create(username, password);
+    })
+    .catch((err) => {
+      console.trace(err);
+    });
+  } else {
+    User.create(username, password);
+  }
+};
+
+const sanitizeFilename = (name) => {
+  if (!name) return '';
+  return name;
 }
 
-const get = (key) => db[key];
+const generateMigration = (name) => {
+  migration.run();
+  return;
+  let nName = name;
+  if (!nName) {
+    prompt.readLine('Enter migration name')
+      .then((line) => {
+        nName = sanitizeFilename(line);
+        if (nName) {
+          generateMigration(nName);
+        } else {
+          console.error('Migration name MUST NOT be empty or contain INVALID path characters!');
+        }
+      })
+      .catch((err) => console.error(err));
+  } else {
+    migration.new(nName)
+      .then((file) => console.log(`Generated migration path - ${file}`))
+      .catch((err) => console.error(err));
+  }
+};
 
-const getAll = () => ({ ...db });
+const args = arg({}, { argv, permissive: true });
 
-const post = (key, value) => {
-  db[key] = value;
-  save();
+const commands = args._.map((c) => c.toLowerCase());
+
+if (commands[0] === 'new') {
+  if (commands[1] === 'user') {
+    createUser();
+    return;
+  }
+  if (commands[1] === 'migration') {
+    const name = sanitizeFilename(commands[2]);
+    if (!name) {
+      console.error(`Please provide a descriptive name for migration. ${!commands[2]? 'empty string' : commands[2]} is not a valid migration name`);
+      return;
+    }
+    generateMigration(name);
+    return;
+  }
+
+  console.error(`${commands[1] || 'undefined'} is not a valid new parameter!`)
+  return;
 }
 
-const update = (key, value) => {
-  db[key] = value;
-  save();
+if (commands[0] === 'console' || commands[0] === 'c') {
+  openConsole();
+  return;
 }
 
-const destroy = (key) => {
-  delete db[key];
-  save();
-}
-
-module.exports = { find, get, getAll, post, update, delete: destroy };
+inquire.prompt([{
+  name: 'command',
+  message: 'Please enter command id',
+}])
+.then((answers) => {
+  switch(answers.command) {
+    case 'new user':
+      createUser(true);
+      break;
+    case 'new migration':
+      generateMigration();
+      break;
+    case 'console':
+      openConsole(true);
+      break;
+    default:
+      console.log('Unknown command provided. Exiting LFS ...');
+  }
+})
+.catch((err) => {
+  console.trace(err);
+});

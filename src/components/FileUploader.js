@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectCurrentDir, uploadFileAsync } from '../reducers/dirSlice';
+import { selectCurrentDir, selectUploadId, uploadFileAsync } from '../reducers/dirSlice';
 import { openUploadForm, selectIsUploadFormOpen } from '../reducers/filesSlice';
+import ProgressRelay from '../reducers/xhrProgressRelay';
+import { fileSize } from '../utility';
+import LoadingBar from './LoadingBar';
 
 const styles = {
   uploadInput: {
@@ -46,6 +49,44 @@ const styles = {
   },
 };
 
+let id = 0;
+
+const UploadStatus = () => {
+  const [state, setState] = useState({ loaded: 0, total: 0 });
+  const [subscribed, setSubscribed] = useState(false);
+  const uid = useSelector(selectUploadId);
+
+  useEffect(() => {
+    if (!subscribed) {
+      const relay = ProgressRelay.getRelay(uid);
+      if (relay) {
+        relay.subscribe((loaded, total) => {
+          console.log({ loaded, total })
+          setState({ loaded, total });
+        }, []);
+        setSubscribed(true);
+        console.log('Subscribed');
+        return () => relay.unsubscribe();
+      }
+    }
+  });
+
+  if (!uid) {
+    return <></>;
+  }
+
+  let text;
+  if (state.total) {
+    text = `${(100 * state.loaded) / state.total}%`;
+  } else {
+    text = `${fileSize(state.loaded)} / --`;
+  }
+
+  return (
+    <div>{text}</div>
+  );
+};
+
 /**
  * @typedef options
  * @property {string} filename
@@ -56,6 +97,7 @@ const FileUploader = () => {
   const [state, setStateReact] = useState({ file: null, fileClicked: false });
   const dir = useSelector(selectCurrentDir);
   const isOpen = useSelector(selectIsUploadFormOpen);
+  const uploadId = useSelector(selectUploadId);
   const dispatch = useDispatch();
 
   const fileInput = useRef();
@@ -79,7 +121,8 @@ const FileUploader = () => {
       return;
     }
     const data = new FormData(form.current);
-    dispatch(uploadFileAsync(data));
+    id += 1;
+    dispatch(uploadFileAsync(data, `upload-${id}`));
     closeForm();
   };
 
@@ -89,17 +132,27 @@ const FileUploader = () => {
 
   useEffect(() => {
     if (isOpen && !state.fileClicked) {
-      fileInput.current.click();
-      setState({ fileClicked: true });
+      if (fileInput.current) {
+        fileInput.current.click();
+        setState({ fileClicked: true });
+      }
     }
   }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen && state.file) {
-      fileInput.current.value = '';
+      if (fileInput.current) {
+        fileInput.current.value = '';
+      }
       setState({ file: null });
     }
   }, [isOpen]);
+
+  if (uploadId) return (
+    <LoadingBar>
+      <UploadStatus />
+    </LoadingBar>
+  );
 
   const formClass = isOpen ? 'form' : 'form clip';
   

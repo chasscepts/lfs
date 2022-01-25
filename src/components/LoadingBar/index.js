@@ -1,6 +1,6 @@
 import styles from './style.module.css';
 
-export default function LoadingBar() {
+export default function LoadingBar({ children }) {
   return (
     <div className={styles.container}>
       <div className={styles.ldsSpinner}>
@@ -17,6 +17,7 @@ export default function LoadingBar() {
         <div />
         <div />
       </div>
+      <div className={styles.children}>{children}</div>
     </div>
   );
 }
