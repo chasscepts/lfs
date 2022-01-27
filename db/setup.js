@@ -2,12 +2,13 @@ const bcrypt = require('bcrypt');
 const db = require('./database');
 const prompt = require('./prompt');
 const security = require('./security');
+const admin = require('./Admin');
+const { USER_TERMINATED, AUTHENTICATION_FAILED } = require('./errorCodes');
 
 const msg = `
 Database has ALREADY been setup. 
 If you decide to continue with a new setup, you loose ALL THE DATA already in your database.
 This process is irreversible.
-Do you wish to continue? [yes / no]
 `;
 
 const createAdminTableMigrationText = 
@@ -50,9 +51,7 @@ module.exports = {
 }
 `;
 
-const migrate = () => new Promise((resolve, reject) => {
 
-})
 
 const setup = () => {
   let username;
@@ -86,63 +85,44 @@ const setup = () => {
     });
 };
 
-const getAllAdmins = () => {
+const run2 = () => new Promise((resolve, reject) => {
+  admin.isEmpty()
+    .then((empty) => {
+      console.log({ empty });
+    })
+    .catch((err) => reject(err));
+});
 
-}
-
-const run = () => {
-  if (db === null) return setup();
-
-  return new Promise((resolve, reject) => {
-    db.all('SELECT * FROM admins', (err, rows) => {
-      if (err) {
-        reject(err);
+const run = () => new Promise((resolve, reject) => {
+  admin.isEmpty()
+    .then((empty) => {
+      if (empty) {
+        return admin.setup()
+          .then(() => admin.promptRegistration())
+          .catch((err) => { throw err; })
+      };
+      console.warn(msg);
+      return prompt.readLine('Do you wish to continue? [yes / no]')
+        .then((line) => {
+          if (!(line === 'y' || line === 'yes')) {
+            const error = new Error('User opted not to reset the database!');
+            error.code = USER_TERMINATED;
+            throw error;
+          }
+          return admin.promptLogin();
+        })
+        .catch((err) => {throw err;})
+    })
+    .then((admin) => {
+      if (!admin) {
+        const error = new Error('Authentication Failed!');
+        error.code = AUTHENTICATION_FAILED;
+        throw error;
       }
-      if (rows.length > 0) {
-        let username;
-        let password;
-        prompt.readLine(msg)
-          .then((line) => {
-            if (!(line === 'y' || line === 'yes')) {
-              throw {};
-            }
-            return prompt.readLine('Enter username: ');
-          })
-          .then((line) => {
-            username = line;
-            return prompt.readLine('Enter passord: ');
-          })
-          .then((line) => {
-            password = line;
-            return new Promise((resolve, reject) => {
-              db.get(
-                'SELECT password FROM admins WHERE username=$name',
-                { $name: username }, (err, admin) => {
-                  if (err) reject(err);
-                  else if (admin) resolve(admin.password);
-                  else reject({ localMessage: 'Incorrect username or password' });
-                });
-            });
-          })
-          .then((hash) => bcrypt.compare(password, hash))
-          .then((eq) => {
-            if (eq) {
-              setup()
-                .then(() => resolve())
-                .catch((err1) => reject(err1));
-            }
-            else reject({ localMessage: 'Incorrect username or password' });
-          })
-          .catch ((err1) => reject(err1));
-      }
-      else {
-        setup()
-          .then(() => resolve())
-          .catch((err1) => reject(err1));
-      }
-    });
-  });
-};
+      resolve();
+    })
+    .catch((err) => reject(err));
+});
 
 module.exports = {
   run,

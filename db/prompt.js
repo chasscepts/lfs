@@ -1,5 +1,6 @@
 const readline = require('readline');
 const { stdin: input, stdout: output } = process;
+const { USER_TERMINATED } = require('./errorCodes');
 
 /**
  * @typedef {Object} SessionOptions
@@ -44,10 +45,8 @@ const session = (prmt, oninput, onclose, options) => {
   r1.on('SIGTSTP', () => {
     r1.close();
   });
-  r1.on('line', (input) => {
-    r1.pause();
-    oninput(input);
-    r1.resume();
+  r1.on('line', (line) => {
+    oninput(line);
     print(prmt);
   });
   r1.on('close', () => {
@@ -72,11 +71,13 @@ const readLine = (question) => new Promise((resolve, reject) => {
   let error;
 
   r1.on('SIGINT', () => {
-    error = { code: 1, message: 'User terminated process before input was received' };
+    const error = new Error('User terminated process before input was received');
+    error.code = USER_TERMINATED;
     close();
   });
   r1.on('SIGTSTP', () => {
-    error = { code: 1, message: 'User terminated process before input was received' };
+    const error = new Error('User terminated process before input was received');
+    error.code = USER_TERMINATED;
     close();
   });
   r1.on('line', (input) => {

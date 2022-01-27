@@ -3,7 +3,7 @@ const path = require('path');
 const uuid = require('uuid');
 const db = require('./database');
 
-const PATH = path.join(process.cwd(), 'db', '__migrations');
+const FOLDER = path.join(process.cwd(), 'db', '__migrations');
 
 const MIGRATION_SEED =
 `const sqlite3 = require('sqlite3');
@@ -21,13 +21,13 @@ module.exports = {
 
 const TABLE = '__MIGRATIONS__';
 
-if (!fs.existsSync(PATH)) {
-  fs.mkdirSync(PATH);
+if (!fs.existsSync(FOLDER)) {
+  fs.mkdirSync(FOLDER);
 }
 
 const createFile = (name, seed) => new Promise((resolve, reject) => {
   const lName = `${name}_${uuid.v4()}.js`;
-  const file = path.join(PATH, lName);
+  const file = path.join(FOLDER, lName);
   fs.writeFile(file, seed || MIGRATION_SEED, (err) => {
     if (err) reject(err);
     else resolve(file);
@@ -51,7 +51,7 @@ const runSingle = (index, migrations, resolve, reject) => {
       return;
     }
     if (!row) {
-      const migration = require(path.join(PATH), id);
+      const migration = require(path.join(FOLDER), id);
       migration.run()
         .then((b) => {
           if (b) {
@@ -92,14 +92,14 @@ const run = () => new Promise((resolve, reject) => {
       reject(err);
     }
 
-    const files = fs.readdirSync(PATH, { encoding: 'utf-8' }).map((f) => f.split('_').pop());
+    const files = fs.readdirSync(FOLDER, { encoding: 'utf-8' }).map((f) => f.split('_').pop());
 
     runSingle(0, files, resolve, reject);
   });
 });
 
 module.exports = {
-  PATH,
+  FOLDER,
   new: createFile,
   run,
   drop,

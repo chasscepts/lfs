@@ -1,6 +1,7 @@
 const arg = require('arg');
 const inquire = require('inquirer');
 const lfsConsole = require('./lfsConsole');
+const setup = require('./setup');
 const migration = require('./migration');
 const prompt = require('./prompt');
 const User = require('./User');
@@ -175,53 +176,74 @@ const generateMigration = (name) => {
   }
 };
 
+const setupAdmin = () => {
+  setup.run()
+    .then(() => console.log('LFS admin setup completed'))
+    .catch((err) => console.error(err));
+};
+
 const args = arg({}, { argv, permissive: true });
 
 const commands = args._.map((c) => c.toLowerCase());
 
+let handled = false;
+
 if (commands[0] === 'new') {
-  if (commands[1] === 'user') {
-    createUser();
-    return;
-  }
-  if (commands[1] === 'migration') {
-    const name = sanitizeFilename(commands[2]);
-    if (!name) {
-      console.error(`Please provide a descriptive name for migration. ${!commands[2]? 'empty string' : commands[2]} is not a valid migration name`);
-      return;
-    }
-    generateMigration(name);
-    return;
-  }
-
-  console.error(`${commands[1] || 'undefined'} is not a valid new parameter!`)
-  return;
-}
-
-if (commands[0] === 'console' || commands[0] === 'c') {
-  openConsole();
-  return;
-}
-
-inquire.prompt([{
-  name: 'command',
-  message: 'Please enter command id',
-}])
-.then((answers) => {
-  switch(answers.command) {
-    case 'new user':
-      createUser(true);
+  switch (commands[1]) {
+    case 'user':
+      createUser();
       break;
-    case 'new migration':
-      generateMigration();
-      break;
-    case 'console':
-      openConsole(true);
+    case 'migration':
+      const name = sanitizeFilename(commands[2]);
+      if (!name) {
+        console.error(`Please provide a descriptive name for migration. ${!commands[2]? 'empty string' : commands[2]} is not a valid migration name`);
+      } else {
+        generateMigration(name);
+      }
       break;
     default:
-      console.log('Unknown command provided. Exiting LFS ...');
+      console.error(`${commands[1] || 'undefined'} is not a valid new command parameter!`);
+      break;
   }
-})
-.catch((err) => {
-  console.trace(err);
-});
+  handled = true;
+} else if (commands[0] === 'admin') {
+  switch (commands[1]) {
+    case 'setup':
+      setupAdmin();
+      break;
+    default:
+      const errorMessage = commands[2] ? `Unknow Admin command - ${commands[2]}` : 'Admin setup requires a second, argument but none received!';
+        console.error(errorMessage);
+      break;
+  }
+  handled = true;
+}
+else if (commands[0] === 'console') {
+  openConsole();
+  handled = true;
+}
+
+if (!handled) {
+  inquire.prompt([{
+    name: 'command',
+    message: 'Please enter command id',
+  }])
+  .then((answers) => {
+    switch(answers.command) {
+      case 'new user':
+        createUser(true);
+        break;
+      case 'new migration':
+        generateMigration();
+        break;
+      case 'console':
+        openConsole(true);
+        break;
+      default:
+        console.log('Unknown command provided. Exiting LFS ...');
+    }
+  })
+  .catch((err) => {
+    console.trace(err);
+  });
+}
